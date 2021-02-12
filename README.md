@@ -647,6 +647,68 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
 
 ---
 
+### 주문과 할인 도메인 개발
+
+- discount 관련 개발
+  - src/main/java/hello.core/discount package 생성
+  - DiscountPolicy interface 생성
+    - 할인 대상 금액을 반환해줌
+  - FixDiscountPolicy Class 생성(정액할인정책 구현체)
+    ```java
+    private int discountFixAmount = 1000; // 1000원 할인
+
+    @Override
+    public int discount(Member member, int price) {
+      if (member.getGrade() == Grade.VIP){
+          return discountFixAmount;
+      }else{
+          return 0;
+      }
+    }
+    ``` 
+    - VIP면 1000원 할인, 그 외는 0원 할인
+- order 관련 개발
+  - src/main/java/hello.core/order package 생성
+  - Order class 생성
+    - 주문에서 할인이 다 끝나고 만들어지는 객체
+    - field에 memberId, itemName, itemPrice,discountPrice(할인 금액)
+    - 그 후, 생성자 생성
+    - 그리고, getter, setter 생성
+    - calculatePrice()(계산 로직)
+      ```java
+      public int calculatePrice(){
+        return itemPrice - discountPrice;
+      }
+      ``` 
+    - toString()
+      - Generate->toString()해서 생성
+      - 편하게 객체의 데이터를 보기 위해서 생성
+      - 객체를 출력하면 toString()의 결과가 나옴
+
+  - OrderService interface 생성
+    - createOrder()
+      - OrderService에는 주문을 생성할때 회원 id, 상품명, 상품 가격을 파라미터로 넘겨야함. 그러면, return으로 주문 결과를 반환한다.
+
+  - OrderServiceImpl class 생성
+    - OrderService는 MemberRepository에서 회원을 찾아야하고, DiscountPolicy가 필요함.
+      ```java
+      private final MemberRepository memberRepository = new MemoryMemberRepository();
+      private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+      ```
+       
+    - createOrder구현
+      ```java
+      @Override
+      public Order createOrder(Long memberId, String itemName, int itemPrice) {
+        Member member = memberRepository.findById(memberId);
+        int discountPrice = discountPolicy.discount(member, itemPrice);
+
+        return new Order(memberId, itemName, itemPrice, discountPrice);
+      }
+      ```
+      - OrderService 입장에서는 할인에 대해서는 잘 모르지만 할인에 대한 부분은 discountPolicy가 알아서 해주고 그에 대한 결과만 얻어옴.
+        - 단일 체계 원칙을 잘 지킴
+        - 만약, 할인에 대한 변경이 필요하면 할인 부분만 고치면 됨.(주문까지는 안건들여도 됨.)
 
 
 
@@ -684,6 +746,7 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
     - [회원 도메인 개발](#회원-도메인-개발)
     - [회원 도메인 실행과 테스트](#회원-도메인-실행과-테스트)
     - [주문과 할인 도메인 설계](#주문과-할인-도메인-설계)
+    - [주문과 할인 도메인 개발](#주문과-할인-도메인-개발)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -701,5 +764,6 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
     - [회원 도메인 개발](#회원-도메인-개발)
     - [회원 도메인 실행과 테스트](#회원-도메인-실행과-테스트)
     - [주문과 할인 도메인 설계](#주문과-할인-도메인-설계)
+    - [주문과 할인 도메인 개발](#주문과-할인-도메인-개발)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
