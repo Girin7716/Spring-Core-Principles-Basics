@@ -1,5 +1,6 @@
 # 스프링 핵심 원리 - 기본편
-인프렁 강좌 '스프링 핵심 원리-기본편'(김영한)을 수강하며 정리한 내용들입니다.
+인프렁 강좌 '스프링 핵심 원리-기본편'(김영한)을 수강하며 정리한 내용들입니다.<br>
+https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%EC%9B%90%EB%A6%AC-%EA%B8%B0%EB%B3%B8%ED%8E%B8
 
 ---
 ---
@@ -356,8 +357,119 @@
 
 ## 스프링 핵심 원리 이해1 - 예제 만들기
 
+이 단원에서는 순수한 Java로만 작성해볼거임.(프로젝트 환경설정을 편리하게 하려고 스프링 부트를 사용하긴 함. 그외에는 순수한 자바로만 개발)
+
 ---
 ---
 
 ### 프로젝트 생성
 
+- 환경
+  - Java11
+  - IntelliJ
+- start.spring.io에서 아래와 같이 프로젝트 생성
+  - Gradle Project
+  - Java
+  - 2.4.2
+  - Project Metadata
+    - Group : hello
+    - Artifact(빌드명) : core
+    - Packaging : Jar
+    - Java : 11
+  - Dependencies : 아무것도 선택안할거임(only 자바로 작성할거라서)
+
+- 위 설정 후 다운 받기 -> 압축 풀기 -> IntelliJ에서 open -> 압축 푼 경로로가서 build.gradle 열기 -> Open as Project
+
+- build.gradle
+  ```java
+  dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  }
+  ``` 
+  - 의존관계가 spring-boot-starter와 test관련된 라이브러리 이렇게 두가지만 들어가있다.
+
+- 실행방법
+  - src/main/java/hello.core/CoreApplication을 실행하면 됨.
+    - 실행하면 바로 끝나야함(왜냐 spring web project를 넣은게 아니기때문에)
+
+- Preferences -> gradle 입력 -> Build and run using : IntelliJ IDEA, Run tests using : IntelliJ IDEA로 수정
+  - 이렇게하면 IntelliJ 에서 Java를 바로 실행하기때문에 체감상 더 빠르다.
+
+---
+
+### 비즈니스 요구사항과 설계
+
+- 회원
+  - 회원 가입, 회원 조회
+  - 회원에는 일반과 VIP 등급이 있다.
+  - 회원 데이터는 자체 DB를 구축할 수도 있고, 외부 시스템과 연동할 수 있다.(미확정)
+- 주문과 할인 정책
+  - 회원은 상품 주문 가능
+  - 회원 등급에따라 할인 정책 적용
+  - 할인 정책
+    - 모든 VIP는 1,000원 할인해주는 고정 금액 할인 적용(나중에 변경될 수도 있음)
+  - 할인 정책은 변경 가능성이 높다.
+    - 회사의 기본 항린 정책을 아직 정하지 못함, 오픈 직전까지 고민을 미루고 싶다. 최악의 경우 할인을 적용하지 않을 수 있다(미확정)
+
+- 미확정인 부분때문에 개발을 무기한 기다릴 수는 없다.
+- <strong>인터페이스를 만들고 구현체를 언제든지 갈아끼울 수 있도록 설계하면 된다.</strong>
+  
+---
+
+### 회원 도메인 설계
+
+- 회원 도메인 협력 관계
+  - 기획자들도 볼 수 있는 그림
+  - ![member_domain](./readme_img/member_domain.JPG)
+  - 클라이언트(역할)가 회원 서비스 호출
+  - 회원 서비스(역할)는 두가지 기능을 제공함,
+    - 회원가입
+    - 회원조회
+  - 회원 저장소(역할)라는 인터페이스를 별도로 생성
+    - 왜냐하면 회원 db를 자체 구축할 수도 있고, 외부 시스템과 연동할 수 있기 때문.
+    - 회원 데이터에 접근하는 계층을 따로 만듦.
+  - 회원 저장소의 구현
+    - 메모리 회원 저장소(구현)
+    - DB 회원 저장소(구현)
+    - 외부 시스템 연동 회원 저장소(구현)
+    - 위 셋 중하나를 회원 저장소 인터페이스에 꼽으면 된다.
+    - 일단은, 메모리 회원 저장소(간단함)를 만들어서 개발을 진행하기로 함.(단, 메모리이기때문에 서버가 재부팅되면 데이터가 날라가니까 개발할때만 사용)
+
+- 회원 클래스 다이어그램
+  - 도메인 협력 관계를 바탕으로 개발자들이 구체화하여 클래스 다이어그램을 생성
+  - interface랑 구현체들이 보임
+  - 실제 구현 level
+  - 서버를 실행하지 않고 클래스들만 분석해서 볼 수 있는 그림
+  - ![class_diagram](./readme_img/class_diagram.JPG)
+  - MemberService(역할)(interface)
+    - 회원 서비스
+    - MemberServiceImpl(구현체)
+  - MemberRepository(역할)(interface)
+    - 회원 저장소
+    - MemoryMemberRepository(구현체)
+    - DbMemberRepository(구현체)
+
+- 회원 객체 다이어그램
+  - 구현체들은 서버가 뜰때 동적으로 결정이 됨. 이를 표현하고자 함.
+  - 실제 서버에 올라오면 객체간의(메모리 간의) 참조들이 어떻게 되는지 그린거임.
+  - ![entity_diagram](./readme_img/entity_diagram.JPG)
+  - 클라이언트는 회원 서비스를 바라 봄.
+  - 회원 서비스(정확히는 회원 서비스 구현체)는 메모리 회원 저장소를 바라봄.
+
+- 설계 순서
+  - 도메인 -> 클래스 다이어그램 -> 객체 다이어그램
+
+---
+
+
+
+
+
+
+---
+---
+
+## 단축키 모음집
+
+Preferences(or Settings) 바로가기 : ctrl+alt+s
