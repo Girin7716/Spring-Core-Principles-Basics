@@ -320,7 +320,7 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
 
 ---
 
-### 객체 지향 설계와 스프링
+### 객체 지향 설계와 Spring
 
 - 스프링 이야기에 왜 객체 지향 이야기가 나오는가?
   - <strong>스프링은 다음 기술로 다형성 + OCP, DIP를 가능하게 지원</strong>
@@ -462,7 +462,151 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
 
 ---
 
+### 회원 도메인 개발
 
+- 위에서 작성한 회원 클래스 다이어그램을 바탕으로 개발하기.
+- member package 생성
+  - Grade(enum)
+    - 회원 등급을 나타낸다
+    - BASIC, VIP
+  - Member(Class, Entity)
+    - 3가지 속성을 가짐
+      - id, name, grade
+      ```java
+      private Long id;
+      private String name;
+      private Grade grade;
+      ``` 
+    - 생성자 만들기
+      ```java
+      public Member(Long id, String name, Grade grade) {
+        this.id = id;
+        this.name = name;
+        this.grade = grade;
+      }
+      ``` 
+    - Getter & Setter 생성
+      - 데이터를 가져오고 꼽아주는 역할
+      - Getter 와 Setter를 통해 private의 값들을 설정해줄 수 있다.  
+  - MemberRepository(interface)
+    ```java
+    public interface MemberRepository {
+
+      void save(Member member);
+
+      Member findById(Long memberId);
+    }
+    ```
+    - save()
+      - 회원 저장
+    - findById()
+      - 회원의 id로 회원을 찾는 기능
+  - MemoryMemberRepository(구현체)
+    - 보통은 따로 package만들어서 구현체끼리 묶어두나 간편한 예제니까 같은 member package에 넣어둠
+    - 구현체니까 아래와 같이 해야함
+      ```java
+      public class MemoryMemberRepository implements MemberRepository
+      ```
+    - 저장소니까 Map같은 저장소가 있어야함
+      ```java
+      private static Map<Long, Member> store = new HashMap<>();
+      ```
+      - HashMap<>()은 동시성 이슈가 있을 수 있어서 사실은 ConcurrentHashMap을 써야한다.
+    - save(Member member)
+    - findById(Long memberId)
+      - store에서 get()해서 넘어온 memberId를 가지고 찾는기능.
+    - 이렇게 간단하게 메모리로 사용하는 db를 만들었고 개발을 진행할 수 있다. 물론 메모리로만 진행하기 때문에 test용도로만 써야한다.
+
+  - MemberService(interface)
+    - 2가지 기능이 있음.
+    - join()
+      - 회원 가입
+    - findMember()
+      - 회원 조회
+  - MemberServiceImpl(구현체)
+    - 가입을하고 조회를 할려면 필요한 것이 MemberRepository이다. 그러나, MemberRepository는 interface이므로 구현 객체를 선택해서 넣어줘야함.
+      ```java
+      private final MemberRepository memberRepository = new MemoryMemberRepository();
+      ``` 
+    - 회원 가입
+      ```java
+      @Override
+      public void join(Member member) {
+        memberRepository.save(member);
+      }
+      ``` 
+      - join()에서 save()를 호출하면 다형성에 의해서 MemoryMemberRepository에 있는 save()가 호출이 된다.
+    - 회원 조회
+      ```java
+      @Override
+      public Member findMember(Long memberId) {
+        return memberRepository.findById(memberId);
+      }
+      ``` 
+
+---
+
+### 회원 도메인 실행과 테스트
+
+- 회원 객체 다이어그램의 그림을 만들거임.
+- 런타임에 동작 -> 클라이언트는 MemberServiceImpl을 사용하게 됨 -> 회원 서비스는 메모리 회원 저장소를 참조함.
+- src/main/java/hello.core에 MemberApp 생성
+  - 여기서 잘되는지 test할 예정
+  - MemberService를 만들어서 구현체로 new MemberServiceImpl()해서 선택해줌.
+  - join() test
+    - member를 생성자를 통해 객체 생성
+    - join(member)
+    - memberService.findMember()를 통해 가입한 멤버랑 찾은 멤버가 똑같으면 원하는데로 test가 된거임
+  - 위 방식대로 test한 것은 순수한 자바코드로 진행한거임(spring 관련X)
+  - 그런데, 애플리케이션 로직으로 main method를 test하는것은 한계가 있음.(좋은 방법이 아님)
+  - <strong>그래서, Junit이라는 test framework를 사용한다.</strong>
+
+- test(junit)
+  - src/test/java/hello.core/ 에 member package 생성
+  - src/test/java/hello.core/member/ 에 MemberServiceTest class 생성
+    -join() Test
+      ```java
+      MemberService memberService = new MemberServiceImpl();
+
+      @Test
+      void join(){
+        //given
+        Member member = new Member(1L,"memberA",Grade.VIP);
+
+        //when
+        memberService.join(member);
+        Member findMember = memberService.findMember(1L);
+
+        //then
+        Assertions.assertThat(member).isEqualTo(findMember);
+      }
+      ``` 
+    - given
+      - ~~한것들이 주어졌을때
+    - when
+      - 이렇게 햇을때
+    - then
+      - 요렇게 된다.
+    - 검증
+      - Assertions(org.assertj.core.api)를 통해 검증하면 됨
+  - join test를 실행하면 성공한 모습을 볼 수 있다.
+  - 위에서 순수 자바코드로 검증하면 눈으로 직접(출력된 결과를 보면서) 검증했었지만, junit으로 검증하면 출력된 결과를 직접 보면서 검증하는 것이 아니라 성공, 실패의 유무를 바로 확인 가능하다.
+  - test code 작성은 필수적이다.
+
+- 회원 도메인 설계의 문제점
+  - 다른 저장소로 변경할 때 OCP 원칙을 준수하지 못함.
+  - DIP 원칙을 준수하지 못함.
+  - 즉, <strong>의존관계가 인터페이스 뿐만 아니라 구현까지 모두 의존하는 문제점이 있음</strong>
+    - 코드에서는 아래 부분이 구현체를 의존하는 부분이다.
+    ```java
+    public class MemberServiceImpl implements MemberService{
+      private final MemberRepository memberRepository = new MemoryMemberRepository();
+      ...
+      ...
+      ...
+    ``` 
+      - 앞의 MemberRepository라는 interface에 의존을 하지만, 뒤에 실제 할당하는 부분인 new MemoryMemberRepository()부분에서 구현체를 의존한다.
+      - 그래서 MemberServiceImpl은 MemberRepository(추상화) 뿐만 아니라 MemoryMemberRepository(구체화)도 의존한다.
 
 
 
@@ -470,6 +614,51 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
 ---
 ---
 
-## 단축키 모음집
+## IntelliJ 단축키 모음집 & 참고
+- 기본적으로 Preferences -> keymap 으로 들어간 뒤 본인이 사용하고자하는 단축키 이름일 입력하면 환경에 맞게(window,mac..) 단축키가 나옴
+- Preferences(or Settings) 바로가기 : ctrl+alt+s
+- Generate(생성자,Getter,Setter 등...) : alt+insert (나같은 경우 alt+function+delete)
+- Compact middle Package
+- 자동완성(세미콜론까지 포함해서) : ctrl+shift+enter
+- public static void main(String[] args) 생성 : psvm + enter
+- 값 추출해서 변수에 넣기 : ctrl+alt+v
+- Print a value to System.out : soutv+enter
+- 
 
-Preferences(or Settings) 바로가기 : ctrl+alt+s
+
+---
+---
+
+## 목차(바로가기)
+
+- [스프링 핵심 원리 - 기본편](#스프링-핵심-원리---기본편)
+  - [객체 지향 설계와 스프링](#객체-지향-설계와-스프링)
+    - [이야기 - 자바 진영의 추운 겨울과 스프링의 탄생](#이야기---자바-진영의-추운-겨울과-스프링의-탄생)
+    - [스프링이란?](#스프링이란)
+    - [좋은 객체 지향 프로그래밍?](#좋은-객체-지향-프로그래밍)
+    - [좋은 객체 지형 설계의 5가지 원칙(SOLID)](#좋은-객체-지형-설계의-5가지-원칙solid)
+    - [객체 지향 설계와 Spring](#객체-지향-설계와-spring)
+  - [스프링 핵심 원리 이해1 - 예제 만들기](#스프링-핵심-원리-이해1---예제-만들기)
+    - [프로젝트 생성](#프로젝트-생성)
+    - [비즈니스 요구사항과 설계](#비즈니스-요구사항과-설계)
+    - [회원 도메인 설계](#회원-도메인-설계)
+    - [회원 도메인 개발](#회원-도메인-개발)
+    - [회원 도메인 실행과 테스트](#회원-도메인-실행과-테스트)
+  - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
+  - [목차(바로가기)](#목차바로가기)
+
+- [스프링 핵심 원리 - 기본편](#스프링-핵심-원리---기본편)
+  - [객체 지향 설계와 스프링](#객체-지향-설계와-스프링)
+    - [이야기 - 자바 진영의 추운 겨울과 스프링의 탄생](#이야기---자바-진영의-추운-겨울과-스프링의-탄생)
+    - [스프링이란?](#스프링이란)
+    - [좋은 객체 지향 프로그래밍?](#좋은-객체-지향-프로그래밍)
+    - [좋은 객체 지형 설계의 5가지 원칙(SOLID)](#좋은-객체-지형-설계의-5가지-원칙solid)
+    - [객체 지향 설계와 Spring](#객체-지향-설계와-spring)
+  - [스프링 핵심 원리 이해1 - 예제 만들기](#스프링-핵심-원리-이해1---예제-만들기)
+    - [프로젝트 생성](#프로젝트-생성)
+    - [비즈니스 요구사항과 설계](#비즈니스-요구사항과-설계)
+    - [회원 도메인 설계](#회원-도메인-설계)
+    - [회원 도메인 개발](#회원-도메인-개발)
+    - [회원 도메인 실행과 테스트](#회원-도메인-실행과-테스트)
+  - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
+  - [목차(바로가기)](#목차바로가기)
