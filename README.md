@@ -866,21 +866,196 @@ junit을 통해 test하기
 
 ---
 
+### 관심사의 분리
+
+>중요
+
+- 애플리케이션을 하나의 공연이라고 생각해보자
+  - 각각의 `인터페이스` == `배역(배우 역할)`
+  - 이 배역에 맞는 `배우를 선택`하는 것은 `누가`하는가?
+  - 배역을 정하는 것은 배우들이 정하는게 아닌 `공연 기획자`가 정하는 거다.
+  - 이전 코드는 마치 `로미오 역할(인터페이스)`을 하는 `레오나르도 디카프리오(구현체,배우)`가 `줄리엣 역할(인터페이스)`을 하는 `여자 주인공(구현체, 배우)`을 직접 초빙하는 것과 같다.
+
+  - `OrderServiceImpl`은 `OrderService와 관련된 로직만 `해야하는데, discountPolicy를 자기가 직접 선택까지 함.(관심사 분리 X)
+
+`관심사를 분리하자`(공연 기획자를 만들고, 배우와 공연 기획자의 책임을 확실히 분리하자.)
+
+<strong>AppConfig 등장</strong>
+
+- 애플리케이션의 전체 동작 방식을 구성(or 설정)(config)하기 위해, <strong>구현 객체를 생성</strong>하고, <strong>연결</strong>하는 책임을 가지는 별도의 설정 클래스를 만들자.
+  - src/main/java/hello.core/AppConfig class 생성
+
+- MemberServiceImpl class로 가서 코드를 아래와 같이 수정
+  ```java
+  //private final MemberRepository memberRepository = new MemoryMemberRepository();
+  private final MemberRepository memberRepository;
+
+  public MemberServiceImpl(MemberRepository memberRepository) {
+    this.memberRepository = memberRepository;
+  }
+  ``` 
+  - 생성자를 통해서 이 MemberRepositoryImpl에 뭐가 들어갈지를 선택함.
+- AppConfig class에서 아래와 같이 코드 작성.
+  ```java
+  public MemberService memberService(){
+    return new MemberServiceImpl(new MemoryMemberRepository());
+  }
+  ``` 
+  - 어디선가 `AppConfig`를 통해서 `memberService`를 불러다 사용한다.
+  - 그러면, `MemberService` 구현체 객체가 생성이 되는데, 그 때 `MemoryMemberRepository`가 들어간다.
+- 위와 같이 코드를 수정할 경우, `MemberServiceImpl`에 `MemoryMemberRepository`(즉 구현체)에 대한 코드는 없어진다!
+  - 즉, `추상화에만 의존한다`
+
+-  위와 같은 과정을 `생성자 주입`이라고 한다.
+   -  생성자를 통해서 객체가 들어간다
+
+- 마찬가지로 OrderService도 바꿔준다.
+  - `OrderServiceImpl`은 사용하는 field가 2개이다.
+    - `MemberRepository`,`DiscountPolicy`
+  - `OrderServiceImpl` 코드 수정
+    ```java
+    //private final MemberRepository memberRepository = new MemoryMemberRepository();
+    //private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+    //private final DiscountPolicy discountPolicy = new RateDiscountPolicy();
+    private final MemberRepository memberRepository;
+    private final DiscountPolicy discountPolicy;
+
+    public OrderServiceImpl(MemberRepository memberRepository, DiscountPolicy discountPolicy) {
+      this.memberRepository = memberRepository;
+      this.discountPolicy = discountPolicy;
+    }
+    ```
+  - `AppConfig` 코드 추가
+    ```java
+    public OrderService orderService(){
+      return new OrderServiceImpl(new MemoryMemberRepository(), new FixDiscountPolicy());
+    }
+    ``` 
+  - `AppConfig`를 통해서 누군가가 OrderService를 조회하면 `OrderServiceImpl`이 반환이 되는데 거기에 `MemoryMemberRepository`랑 `FixDiscountPolicy`가 들어간다.
+  - 그러면, `OrderServiceImpl`은 인터페이스에만 의존하게 된다.
+
+- `AppConfig`는 애플리케이션의 실제 동작에 필요한 <strong>구현 객체를 생성</strong>한다.
+  - `MemberServiceImpl`
+  - `MemoryMemberRepository`
+  - `OrderServiceImpl`
+  - `FixDiscountPolicy`
+- `AppConfig`는 생성한 객체 인스턴스의 참조를 <strong>생성자를 통해서 주입(연결)</strong> 해준다.
+  - `MemberServiceImpl` -> `MemoryMemberRepository`
+  - `OrderServiceImpl` -> `MemoryMemberRepository`, `FixDiscountPolicy`
+
+정리
+- 설계 변경으로 `MemberServiceImpl`은 `MemoryMemberRepository`를 의존하지 않는다!
+- 단지 `MemberRepository` interface에만 의존.
+- `MemberServiceImpl` 입장에서 `생성자`를 통해 어떤 구현 객체가 들어올지(주입될지)는 알 수 없다.
+- `MemberServiceImpl의 생성자`를 통해서 어떤 구현 객체를 주입할지는 오직 외부 `AppConfig`에서 결정.
+- `MemberServiceImpl`은 이제부터 <strong>의존관계에 대한 고민은 외부</strong>에 맡기고 <strong>실행에만 집중</strong>하면 된다.
+
+클래스 다이어그램
+![class_diagram2](./readme_img/class_diagram2.JPG)
+- `MemberService`는 interface이다. 
+- 이 interface를 구현하는 것이 `MemberServiceImpl`이다.
+- 이 `MemberServiceImpl`은 `MemberRepository`라는 interface에 의존한다.
+- `AppConfig`가 `MemberServiceImpl`와 `MemoryMemberRepository`를 생성한다.
+- 그렇게하여, 객체의 생성과 연결은 `AppConfig`가 담당한다.
+- <strong>DIP 완성</strong>
+  - `MemberServiceImpl`은 `MemberRepository`인 추상에만 의존하면 된다. 이제 구현체 클래스를 몰라도 됨.
+- <strong>관심사 분리</strong>
+  - 객체를 생성하고 연결하는 역할(Config)과 실행하는 역할(Impl)이 명확히 분리.
+
+회원 객체 인스턴스 다이어그램
+![instance_diagram](./readme_img/instacne_diagram.JPG)
+- `AppConfig`가 `MemoryMemberRepository` 객체를 생성.
+- 그 다음, `MemberServiceImpl`을 생성할 때, `MemoryMemberRepository`의 참조 값을 같이 생성자에 넘겨줌.
+- 그리하여, `MemberServiceImpl`은 생성한 `MemoryMemberRepository`에 대한 값을 주입을 받게 됨.
+
+- <strong>DI(Dependency Injection)</strong>
+  - 클라이언트인 `MemberServiceImpl`의 입장에서 보면 의존관계를 마치 외부에서 주입해주는 것 같다고하여 `의존관계 주입` 또는 `의존성 주입`이라고 한다.
+
+`AppConfig` 실행
+
+- `MemberApp` 코드 수정
+  ```java
+  public static void main(String[] args) {
+    AppConfig appConfig = new AppConfig();
+    MemberService memberService = appConfig.memberService();
+    //MemberService memberService = new MemberServiceImpl();
+    ...
+    ...
+  }
+  ``` 
+  - 그러면 `AppConfig`로 들어가 `MemberServiceImpl`을 만들고 내가 만든 `MemberServiceImpl`은 `MemoryMemberRepository` 를 사용한다는 의미로 주입해줌.
+    ```java
+    public class AppConfig {
+
+    public MemberService memberService(){
+      return new MemberServiceImpl(new MemoryMemberRepository());
+    }
+    ```
+
+- `OrderApp` 코드 수정
+  ```java
+  AppConfig appConfig = new AppConfig();
+  MemberService memberService = appConfig.memberService();
+  OrderService orderService = appConfig.orderService();
+  ``` 
+- MemberApp과 OrderApp test를 실행해보면 각각 성공하는 모습을 볼 수 있다.
+
+Test 코드 수정
+- `MemberServiceTest`를 아래와 같이 수정
+  ```java
+  //MemberService memberService = new MemberServiceImpl();
+  MemberService memberService;
+
+  @BeforeEach
+  public void beforeEach(){
+    AppConfig appConfig = new AppConfig();
+    memberService = appConfig.memberService();
+  }
+  ``` 
+  - 실행을 하기 전에 `AppConfig`를 만들고, `memberService`를 할당해준다. 그 후, test가 돌아간다. 
+- 마찬가지로 `OrderServiceTest`도 수정
+  ```java
+  //MemberService memberService = new MemberServiceImpl();
+  //OrderService orderService = new OrderServiceImpl();
+  MemberService memberService;
+  OrderService orderService;
+
+  @BeforeEach
+  public void beforeEach(){
+    AppConfig appConfig = new AppConfig();
+    memberService = appConfig.memberService();
+    orderService = appConfig.orderService();
+  }
+  ``` 
+
+#### 정리
+- `AppConfig`를 통해서 관심사를 분리.
+- 배역, 배우를 생각해보기.
+- `AppConfig`는 공연 기획자
+- `AppConfig`는 구현체 클래스를 선택.(배약에 맞는 담당 배우 선택). 애플리케이션이 어떻게 동작해야 할지 전체 구성을 책임짐.
+- 이제 각 구현체들은(각 배우들은) 담당 기능들을 실행하는 책임만 지면 됨.
+- `OrderServiceImpl`은 기능을 실행하는 책임만 지면 됨.
+
+---
+
 
 ---
 ---
 
 ## IntelliJ 단축키 모음집 & 참고
-- 기본적으로 Preferences -> keymap 으로 들어간 뒤 본인이 사용하고자하는 단축키 이름일 입력하면 환경에 맞게(window,mac..) 단축키가 나옴
-- Preferences(or Settings) 바로가기 : ctrl+alt+s
-- Generate(생성자,Getter,Setter 등...) : alt+insert (나같은 경우 alt+function+delete)
-- Compact middle Package
-- 자동완성(세미콜론까지 포함해서) : ctrl+shift+enter
-- public static void main(String[] args) 생성 : psvm + enter
-- 값 추출해서 변수에 넣기 : ctrl+alt+v
-- Print a value to System.out : soutv+enter
-- main에서의 함수에서 test 바로 생성하기: ctrl+shift+t
-- test를 할때 Assertions는 static import하는게 좋음 : Assertions 커서 두고 +alt+enter+(on demand static~~)
+- 기본적으로 `Preferences -> keymap` 으로 들어간 뒤 본인이 사용하고자하는 단축키 이름일 입력하면 환경에 맞게(window,mac..) 단축키가 나옴
+- Preferences(or Settings) 바로가기 : `ctrl+alt+s`
+- Generate(생성자,Getter,Setter 등...) : `alt+insert` (나같은 경우 alt+function+delete)
+- `Compact middle Package`
+- 자동완성(세미콜론까지 포함해서) : `ctrl+shift+enter`
+- public static void main(String[] args) 생성 : `psvm + enter`
+- 값 추출해서 변수에 넣기 : `ctrl+alt+v`
+- Print a value to System.out : `soutv+enter`
+- main에서의 함수에서 test 바로 생성하기: `ctrl+shift+t`
+- test를 할때 Assertions는 static import하는게 좋음 : `Assertions 커서 두고 +alt+enter+(on demand static~~)`
+- 과거 history 보기 : `ctrl+e`
+
+
 
 ---
 ---
@@ -906,6 +1081,8 @@ junit을 통해 test하기
   - [스프링 핵심 원리 이해2 - 객체 지향 원리 적용](#스프링-핵심-원리-이해2---객체-지향-원리-적용)
     - [새로운 할인 정책 개발](#새로운-할인-정책-개발)
     - [새로운 할인 정책 적용과 문제점](#새로운-할인-정책-적용과-문제점)
+    - [관심사의 분리](#관심사의-분리)
+      - [정리](#정리)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -928,5 +1105,7 @@ junit을 통해 test하기
   - [스프링 핵심 원리 이해2 - 객체 지향 원리 적용](#스프링-핵심-원리-이해2---객체-지향-원리-적용)
     - [새로운 할인 정책 개발](#새로운-할인-정책-개발)
     - [새로운 할인 정책 적용과 문제점](#새로운-할인-정책-적용과-문제점)
+    - [관심사의 분리](#관심사의-분리)
+      - [정리](#정리)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
