@@ -816,7 +816,53 @@ junit을 통해 test하기
   }
   ``` 
 
+---
 
+### 새로운 할인 정책 적용과 문제점
+
+- 위에서 만든 새로운 할인 정책을 적용을 할려면 OrderServiceImpl로 들어가 아래와 같이 코드를 고쳐야한다.
+  ```java
+  //private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+  private final DiscountPolicy discountPolicy = new RateDiscountPolicy();
+  ...
+  ...
+  ```
+  - 할인 정책을 변경할려면 클라이언트인 `OrderServiceImpl` 코드를 고쳐야 한다.
+
+- 위에서 `문제점`을 발견함!!
+  - 역할과 구현 분리 O
+  - 다형성 활용, 인터페이스와 구현 객체 분리 O
+  - OCP, DIP와 같은 객체지향 설계 원칙 준수? X
+    - 그렇게 보이지만 아님!
+  - DIP: 주문서비스 클라이언트 `OrderServiceImpl`는 인터페이스(추상)뿐만 아니라 `구현체 클래스에도 의존`하고 있다.
+    - interface 의존 : `DiscountPolicy`
+    - 구현체 의존 : `FixDiscountPolicy`, `RateDiscountPolicy`
+    - 실제 의존 관계
+      ![real](./readme_img/real.JPG)
+  - OCP : 변경하지 않고 확장해야함
+    - 지금 코드는 `기능을 확장해서 변경`하면, `클라이언트 코드에 영향을 줌`.
+    - 정책 변경
+      ![change_policy](./readme_img/change_policy.JPG)
+
+<br/>
+<strong> 위와 같은 문제를 어떻게 해결할 수 있을까?</strong><br/>
+
+- `인터페이스에만 의존하도록 설계를 변경하자`
+  - ![only_interface](./readme_img/only_interface.JPG)
+  - 아래와 같이 코드 변경
+  ```java
+  //private final DiscountPolicy discountPolicy = new FixDiscountPolicy();
+  //private final DiscountPolicy discountPolicy = new RateDiscountPolicy();
+  private DiscountPolicy discountPolicy;
+  ``` 
+  - DiscountPolicy는 interface이다. 즉, OrderServiceImpl은 추상화인 DiscountPolicy에만 의존한다.
+
+- 위와 같이 코드를 수정한 뒤, OrderServiceTest를 돌리면 `NullPointerException`이 발생
+  - 구현체 없이 인터페이스만 가지고 돌렸기 때문.
+
+<strong>해결 방안</strong>
+
+- 누군가 클라이언트인 `OrderServiceImpl`에 `DiscountPolicy`의 구현 객체를 대신 생성하고 주입해주어야 한다.
 
 ---
 
@@ -859,6 +905,7 @@ junit을 통해 test하기
     - [주문과 할인 도메인 실행과 테스트](#주문과-할인-도메인-실행과-테스트)
   - [스프링 핵심 원리 이해2 - 객체 지향 원리 적용](#스프링-핵심-원리-이해2---객체-지향-원리-적용)
     - [새로운 할인 정책 개발](#새로운-할인-정책-개발)
+    - [새로운 할인 정책 적용과 문제점](#새로운-할인-정책-적용과-문제점)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -880,5 +927,6 @@ junit을 통해 test하기
     - [주문과 할인 도메인 실행과 테스트](#주문과-할인-도메인-실행과-테스트)
   - [스프링 핵심 원리 이해2 - 객체 지향 원리 적용](#스프링-핵심-원리-이해2---객체-지향-원리-적용)
     - [새로운 할인 정책 개발](#새로운-할인-정책-개발)
+    - [새로운 할인 정책 적용과 문제점](#새로운-할인-정책-적용과-문제점)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
