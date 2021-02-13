@@ -750,6 +750,77 @@ junit을 통해 test하기
 - 단위 test를 잘 만드는 것이 중요함.
   - 단위 test란 spring이나 컨테이너의 도움 없이 순수하게 자바코드로 test를 하는 것.
 
+
+---
+---
+
+## 스프링 핵심 원리 이해2 - 객체 지향 원리 적용
+
+---
+---
+
+### 새로운 할인 정책 개발
+
+>할인 정책을 고정할인금액(VIP는 1000원 할인)보다는 주문 금액당 정률% 할인으로 바꾸고자 한다.
+
+- 애자일 고프트웨어 개발 선언
+  >공정과 도구보다 `개인과 상호작용`을<br> 
+  포괄적인 문서보다 `작동하는 소프트웨어`를<br> 
+  게약 협상보다 `고객과의 협력`을<br> 
+  계획을 따르기보다 `변화에 대응하기`를<br> 
+  가치 있게 여긴다.
+
+- RateDiscountPolicy 개발
+  - ![ratediscount](./readme_img/ratediscount.JPG)
+  - 아래와 같이 일단 작성
+  ```java
+  private int discountPercent = 10;
+
+  @Override
+  public int discount(Member member, int price) {
+    if(member.getGrade() == Grade.VIP){
+      return price * discountPercent / 100;
+    }else{
+      return 0;
+    }
+  }
+  ```
+
+- RateDiscountPolicyTest 생성
+  - 아래와 같이 코드 작성(성공 test)
+  ```java
+  @Test
+  @DisplayName("VIP는 10% 할인이 적용되어야 한다")
+  void vip_o(){
+    //given
+    Member member = new Member(1L, "memberVIP", Grade.VIP);
+    //when
+    int discount = discountPolicy.discount(member, 10000);
+    //then
+    Assertions.assertThat(discount).isEqualTo(1000);
+  }
+  ``` 
+  - @DisplayName() : junit5에서 부터 지원하면 test 실행 결과를 vip_o 대신 괄호안에 적힌 문자로 나옴.
+  - test를 할때에는 `성공 test`도 중요하나 `실패 test`도 중요하다.
+  - 아래와 같이 코드 작성(실패 test)
+  ```java
+  @Test
+  @DisplayName("VIP가 아니면 할인이 적용되지 않아야 한다")
+  void vip_x(){
+    //given
+    Member member = new Member(2L, "memberBASIC", Grade.BASIC);
+    //when
+    int discount = discountPolicy.discount(member, 10000);
+    //then
+    Assertions.assertThat(discount).isEqualTo(1000);
+  }
+  ``` 
+
+
+
+---
+
+
 ---
 ---
 
@@ -762,8 +833,8 @@ junit을 통해 test하기
 - public static void main(String[] args) 생성 : psvm + enter
 - 값 추출해서 변수에 넣기 : ctrl+alt+v
 - Print a value to System.out : soutv+enter
-- 
-
+- main에서의 함수에서 test 바로 생성하기: ctrl+shift+t
+- test를 할때 Assertions는 static import하는게 좋음 : Assertions 커서 두고 +alt+enter+(on demand static~~)
 
 ---
 ---
@@ -786,6 +857,8 @@ junit을 통해 test하기
     - [주문과 할인 도메인 설계](#주문과-할인-도메인-설계)
     - [주문과 할인 도메인 개발](#주문과-할인-도메인-개발)
     - [주문과 할인 도메인 실행과 테스트](#주문과-할인-도메인-실행과-테스트)
+  - [스프링 핵심 원리 이해2 - 객체 지향 원리 적용](#스프링-핵심-원리-이해2---객체-지향-원리-적용)
+    - [새로운 할인 정책 개발](#새로운-할인-정책-개발)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -805,5 +878,7 @@ junit을 통해 test하기
     - [주문과 할인 도메인 설계](#주문과-할인-도메인-설계)
     - [주문과 할인 도메인 개발](#주문과-할인-도메인-개발)
     - [주문과 할인 도메인 실행과 테스트](#주문과-할인-도메인-실행과-테스트)
+  - [스프링 핵심 원리 이해2 - 객체 지향 원리 적용](#스프링-핵심-원리-이해2---객체-지향-원리-적용)
+    - [새로운 할인 정책 개발](#새로운-할인-정책-개발)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
