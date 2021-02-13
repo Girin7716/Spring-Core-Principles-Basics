@@ -1038,6 +1038,41 @@ Test 코드 수정
 
 ---
 
+### AppConfig 리팩터링
+
+현재 `AppConfig`를 보면 <strong>중복</strong>이 있고, <strong>역할</strong>에 따른 <strong>구현</strong>이 잘 안보인다.(나름 설정 정보니까...)(역할들을 드러나게 하는게 중요함.)
+
+- `AppConfig`를 아래와 같이 수정.
+  ```java
+  public MemberService memberService(){
+    return new MemberServiceImpl(memberRepository());
+  }
+
+  private MemberRepository memberRepository() {
+    return new MemoryMemberRepository();
+  }
+
+  public OrderService orderService(){
+    return new OrderServiceImpl(memberRepository(), discountPolicy());
+  }
+
+  public DiscountPolicy discountPolicy(){
+    return new FixDiscountPolicy();
+  }
+  ``` 
+- `AppConfig`에서 method 이름을 통해서 역할들이 전부 드러남.
+  - `MemberService`,`MemberRepository`,`OrderService`,`DiscountPolicy`
+- `memberService`는 `MemberServiceImpl`을 사용할거다.
+- `memberRepository`에 대한것은 `MemoryMemberRepository`를 사용할거다.
+- 'orderService'에 대한 구체적인 것은 현재 내 application에서 `memberRepository`쓰는 것을 가져오고, 현재 내 application에서 `discountPolicy`쓰는 것을 가져온다.
+- `discountPolicy`에 대한 것은 `FixDiscountPolicy`를 사용할거다.
+
+- ![config](./readme_img/config.JPG)
+  - 그리하여 설계에 대한 그림이 Config에 그대로 드러나게 된다.(역할 + 구현이 한 눈에 들어옴)
+
+- `new MemoryMemberRepository()` 이 부분이 중복 제거되었다. 이제 `MemoryMemberRepository`를 다른 구현체로 변경할 때 한 부분만 변경하면 된다.
+- `AppConfig`를 보면 역할과 구현 클래스가 한눈에 들어온다. 애플리케이션 전체 구성이 어떻게 되어있는지 빠르게 파악할 수 있다.
+
 
 ---
 ---
@@ -1054,6 +1089,7 @@ Test 코드 수정
 - main에서의 함수에서 test 바로 생성하기: `ctrl+shift+t`
 - test를 할때 Assertions는 static import하는게 좋음 : `Assertions 커서 두고 +alt+enter+(on demand static~~)`
 - 과거 history 보기 : `ctrl+e`
+- Extract Method : `ctrl+alt+m`
 
 
 
@@ -1083,6 +1119,7 @@ Test 코드 수정
     - [새로운 할인 정책 적용과 문제점](#새로운-할인-정책-적용과-문제점)
     - [관심사의 분리](#관심사의-분리)
       - [정리](#정리)
+    - [AppConfig 리팩터링](#appconfig-리팩터링)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1107,5 +1144,6 @@ Test 코드 수정
     - [새로운 할인 정책 적용과 문제점](#새로운-할인-정책-적용과-문제점)
     - [관심사의 분리](#관심사의-분리)
       - [정리](#정리)
+    - [AppConfig 리팩터링](#appconfig-리팩터링)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
