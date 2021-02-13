@@ -710,7 +710,45 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
         - 단일 체계 원칙을 잘 지킴
         - 만약, 할인에 대한 변경이 필요하면 할인 부분만 고치면 됨.(주문까지는 안건들여도 됨.)
 
+---
 
+### 주문과 할인 도메인 실행과 테스트
+
+주문이 원하는대로 동작하는지 main method 생성해봄.(물론 좋은 방법이 아님.)
+- src/main/java/hello.core/order/OrderApp class 생성
+  - 임의의 VIP member를 생성하고 이를 메모리DB에 넣어줌(그래야 주문에서 찾아 쓸 수 있으니까)
+    ```java
+    Long memberId = 1L;
+    Member member = new Member(memberId, "memberA", Grade.VIP);
+    memberService.join(member);
+    ``` 
+  - createOrder를 통해 10000원짜리 itemA를 memberId가 order를 생성함.
+    ```java
+    Order order = orderService.createOrder(memberId,"itemA",10000);
+    ```
+  - order를 출력하면 Order Class의 toString으로 인해 아래와 같은 출력물이 나온다.
+    - ![print_order](./readme_img/print_order.JPG)
+    <br/>
+
+
+junit을 통해 test하기
+- 위와 같이 비슷하게 만들면 됨.
+  ```java
+  @Test
+  void createOrder(){
+    Long memberId = 1L;
+    Member member = new Member(memberId, "memberA", Grade.VIP);
+    memberService.join(member);
+
+    Order order = orderService.createOrder(memberId, "itemA", 10000);
+    Assertions.assertThat(order.getDiscountPrice()).isEqualTo(1000);
+  }
+  ``` 
+  - @Test 해줘야함.
+  - sysout 대신 Assertions으로 확인.
+
+- 단위 test를 잘 만드는 것이 중요함.
+  - 단위 test란 spring이나 컨테이너의 도움 없이 순수하게 자바코드로 test를 하는 것.
 
 ---
 ---
@@ -747,6 +785,7 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
     - [회원 도메인 실행과 테스트](#회원-도메인-실행과-테스트)
     - [주문과 할인 도메인 설계](#주문과-할인-도메인-설계)
     - [주문과 할인 도메인 개발](#주문과-할인-도메인-개발)
+    - [주문과 할인 도메인 실행과 테스트](#주문과-할인-도메인-실행과-테스트)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -765,5 +804,6 @@ https://www.inflearn.com/course/%EC%8A%A4%ED%94%84%EB%A7%81-%ED%95%B5%EC%8B%AC-%
     - [회원 도메인 실행과 테스트](#회원-도메인-실행과-테스트)
     - [주문과 할인 도메인 설계](#주문과-할인-도메인-설계)
     - [주문과 할인 도메인 개발](#주문과-할인-도메인-개발)
+    - [주문과 할인 도메인 실행과 테스트](#주문과-할인-도메인-실행과-테스트)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
