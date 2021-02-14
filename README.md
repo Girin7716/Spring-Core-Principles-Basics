@@ -1169,6 +1169,111 @@ OCP
 - `AppConfig`처럼 객체를 생성하고 관리하면서 의존관계를 연결해 주는 것을 IoC 컨테이너 또는 **DI 컨테이너** 라고 함.
 - 또는, 어셈블러(application 전체에 대한 구성을 한다고 하여), 오브젝트 팩토리(object를 만들어 낸다고 하여) 등으로 불리기도 한다.
 
+
+---
+
+### 스프링으로 전환하기
+
+지금까지 순수한 자바 코드만으로 DI를 적용함.
+
+`Appconfig` 코드 변경
+- 이전 코드
+  ```java
+  public class AppConfig {
+
+    public MemberService memberService(){
+      return new MemberServiceImpl(memberRepository());
+    }
+
+    public MemberRepository memberRepository() {
+      return new MemoryMemberRepository();
+    }
+
+    public OrderService orderService(){
+      return new OrderServiceImpl(memberRepository(), discountPolicy());
+    }
+
+    public DiscountPolicy discountPolicy(){
+
+      //return new FixDiscountPolicy();
+      return new RateDiscountPolicy();
+    }
+  }
+  ``` 
+- 바꾼 코드
+  ```java
+  @Configuration
+  public class AppConfig {
+
+    @Bean
+    public MemberService memberService(){
+      return new MemberServiceImpl(memberRepository());
+    }
+    @Bean
+    public MemberRepository memberRepository() {
+      return new MemoryMemberRepository();
+    }
+
+    @Bean
+    public OrderService orderService(){
+      return new OrderServiceImpl(memberRepository(), discountPolicy());
+    }
+
+    @Bean
+    public DiscountPolicy discountPolicy(){
+      //return new FixDiscountPolicy();
+      return new RateDiscountPolicy();
+    }
+  }
+  ``` 
+
+`MemberApp` 코드 변경
+- 이전 코드
+  ```java
+  public static void main(String[] args) {
+
+    AppConfig appConfig = new AppConfig();
+    MemberService memberService = appConfig.memberService();
+    //MemberService memberService = new MemberServiceImpl();
+    Member member = new Member(1L, "memberA", Grade.VIP);
+    memberService.join(member);
+
+    Member findMember = memberService.findMember(1L);
+    System.out.println("new member = " + member.getName());
+    System.out.println("find Member = " + findMember.getName());
+  }
+  ``` 
+- 바꾼 코드
+  ```java
+  public static void main(String[] args) {
+
+    ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
+    MemberService memberService = applicationContext.getBean("memberService", MemberService.class);
+
+    Member member = new Member(1L, "memberA", Grade.VIP);
+    memberService.join(member);
+
+    Member findMember = memberService.findMember(1L);
+    System.out.println("new member = " + member.getName());
+    System.out.println("find Member = " + findMember.getName());
+
+  }
+  ``` 
+
+`OrderApp`도 위와 같이 동일하게 바꾸면 됨
+
+**스프링 컨테이너**
+- `ApplicationContext`를 `스프링 컨테이너라고 한다.
+- 기존에는 개발자가 `AppConfig`를 사용해서 직접 객체를 생성하고 DI를 했지만, 이제부터는 스프링 컨테이너를 통해서 사용한다.
+- 스프링 컨테이너는 `@Configuration`이 붙은 `AppConfig`를 설정(구성) 정보로 사용.
+- 여기서 `@Bean`이라 적힌 메서드를 모두 호출해섭 반환된 객체를 스프링 컨테이너에 등록.
+  - 이렇게 스프링 컨테이너에 등록된 객체를 스프링 빈이라 한다.
+- 스프링 빈은 `@Bean`이 붙은 method의 name을 스프링 빈의 이름으로 사용(`memberService`,`orderService`)
+- 이전에는 개발자가 필요한 객체를 `AppConfig`를 사용해서 직접 조회했지만, 이제부터는 스프링 컨테이너를 통해서 필요한 스프링 빈(객체)를 찾아야 한다. 스프링 빈은 `applicationContext.getBean()` method를 사용해서 찾을 수 있다.
+- 기존에는 개발자가 직접 자바 코드로 모든 것을 했다면, 이제부터는 스프링 컨테이너에 객체를 스프링 빈으로 등록하고, 스프링 컨테이너에서 스프링 빈을 찾아서 사용하도록 변경함.
+
+
+
 ---
 ---
 
@@ -1218,6 +1323,7 @@ OCP
     - [새로운 구조와 할인 정책 적용](#새로운-구조와-할인-정책-적용)
     - [좋은 객체 지향 설계의 5가지 원칙의 적용](#좋은-객체-지향-설계의-5가지-원칙의-적용)
     - [IoC, DI, 그리고 컨테이너](#ioc-di-그리고-컨테이너)
+    - [스프링으로 전환하기](#스프링으로-전환하기)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1246,5 +1352,6 @@ OCP
     - [새로운 구조와 할인 정책 적용](#새로운-구조와-할인-정책-적용)
     - [좋은 객체 지향 설계의 5가지 원칙의 적용](#좋은-객체-지향-설계의-5가지-원칙의-적용)
     - [IoC, DI, 그리고 컨테이너](#ioc-di-그리고-컨테이너)
+    - [스프링으로 전환하기](#스프링으로-전환하기)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
