@@ -1340,8 +1340,37 @@ ApplicationContext applicationContext = new AnnotationConfigApplicationContext(A
   다음은 스프링 컨테이너에서 데이터를 조회해본다.
 
 
+---
 
+### 컨테이너에 등록된 모든 빈 조회
 
+모든 빈 출력하기
+- 실행하면 스프링에 등록된 모든 빈 정보를 출력할 수 있다.
+- `ac.getBeanDefinitionNames()` : 스프링에 등록된 모든 빈 이름 조회.
+- `ac.getBean()` : 빈 이름으로 빈 객체(인스턴스)를 조회.
+
+애프리케이션 빈 출력하기
+- 스프링 내부에서 사용하는 빈은 `getRole()`로 구분할 수 있다.
+  - `ROLE_APPLICATION` : 일반적으로 사용자가 정의한 빈
+  - `ROLE_INFRASTRUCTURE` : 스프링이 내부에서 사용하는 빈
+```java
+@Test
+@DisplayName("애플리케이션 빈 출력하기")
+void findApplicationBean(){
+    String[] beanDefinitionNames = ac.getBeanDefinitionNames();
+    for (String beanDefinitionName : beanDefinitionNames) {
+        BeanDefinition beanDefinition = ac.getBeanDefinition(beanDefinitionName);//bean 하나하나에 대한 metadata 정보
+        // 스프링이 내부에서 뭔가 하기 위해서 등록한 빈이 아니라 내가 애플리케이션을 주로 개발하기위해서
+        // 등록한 빈(아니면 외부 라이브러리..)
+        if (beanDefinition.getRole() == BeanDefinition.ROLE_APPLICATION){
+            Object bean = ac.getBean(beanDefinitionName);
+            System.out.println("name = " + beanDefinitionName + " object = " + bean);
+        }
+    }
+}
+```
+
+---
 
 
 
@@ -1361,6 +1390,7 @@ ApplicationContext applicationContext = new AnnotationConfigApplicationContext(A
 - test를 할때 Assertions는 static import하는게 좋음 : `Assertions 커서 두고 +alt+enter+(on demand static~~)`
 - 과거 history 보기 : `ctrl+e`
 - Extract Method : `ctrl+alt+m`
+- 리스트나 배열이 있으면 for 자동 생성,iterator() : `iter+tab`
 
 
 
@@ -1397,6 +1427,7 @@ ApplicationContext applicationContext = new AnnotationConfigApplicationContext(A
     - [스프링으로 전환하기](#스프링으로-전환하기)
   - [스프링 컨테이너와 스프링 빈](#스프링-컨테이너와-스프링-빈)
     - [스프링 컨테이너 생성](#스프링-컨테이너-생성)
+    - [컨테이너에 등록된 모든 빈 조회](#컨테이너에-등록된-모든-빈-조회)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1428,5 +1459,6 @@ ApplicationContext applicationContext = new AnnotationConfigApplicationContext(A
     - [스프링으로 전환하기](#스프링으로-전환하기)
   - [스프링 컨테이너와 스프링 빈](#스프링-컨테이너와-스프링-빈)
     - [스프링 컨테이너 생성](#스프링-컨테이너-생성)
+    - [컨테이너에 등록된 모든 빈 조회](#컨테이너에-등록된-모든-빈-조회)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
