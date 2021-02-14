@@ -1073,6 +1073,32 @@ Test 코드 수정
 - `new MemoryMemberRepository()` 이 부분이 중복 제거되었다. 이제 `MemoryMemberRepository`를 다른 구현체로 변경할 때 한 부분만 변경하면 된다.
 - `AppConfig`를 보면 역할과 구현 클래스가 한눈에 들어온다. 애플리케이션 전체 구성이 어떻게 되어있는지 빠르게 파악할 수 있다.
 
+---
+
+### 새로운 구조와 할인 정책 적용
+
+정액 할인 정책(FixDiscountPolicy) -> 정률 할인 정책(RateDiscountPolicy)로 변경
+
+- `AppConfig`의 등장으로, 애플리케이션은 크게 `사용 영역`과 `객체를 생성하고 구성(Configuration) 영역`으로 분리.
+- 이제는 `AppConfig`만 변경하면 됨.
+- 사용, 구성의 분리 
+  - ![use_config](./readme_img/use_config.JPG)
+- 할인 정책 변경
+  - ![change](./readme_img/change.JPG)
+
+- `Appconfig`에서 아래와 같이 코드 수정
+  ```java
+  public DiscountPolicy discountPolicy(){
+    //return new FixDiscountPolicy();
+    return new RateDiscountPolicy();
+  }
+  ``` 
+- 이제는 할인 정책을 변경해도, 애플리케이션의 구성 역할을 담당하는 `Appconfig`만 변경하면 됨. 클라이언트 코드인 `OrderServiceImpl`을 포함해서 `사용 영역`의 어떤 코드도 변경할 필요가 없다.
+
+- `구성 영역(AppConfig)`은 당연히 변경이 됨.
+
+
+
 
 ---
 ---
@@ -1120,6 +1146,7 @@ Test 코드 수정
     - [관심사의 분리](#관심사의-분리)
       - [정리](#정리)
     - [AppConfig 리팩터링](#appconfig-리팩터링)
+    - [새로운 구조와 할인 정책 적용](#새로운-구조와-할인-정책-적용)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1145,5 +1172,6 @@ Test 코드 수정
     - [관심사의 분리](#관심사의-분리)
       - [정리](#정리)
     - [AppConfig 리팩터링](#appconfig-리팩터링)
+    - [새로운 구조와 할인 정책 적용](#새로운-구조와-할인-정책-적용)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
