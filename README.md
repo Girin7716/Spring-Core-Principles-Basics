@@ -1670,6 +1670,34 @@ void findAllBeanByObjectType(){
 - BeanFactory나 ApplicationContext를 스프링 컨테이너라 한다.
 
 ---
+
+### 다양한 설정 형식 지원 - 자바 코드 ,XML
+
+- 스프링 컨테이너는 다양한 형식의 설정 정보를 받아드릴 수 있게 유연하게 설계되어 있다.
+  - 자바 코드, XML, Groovy 등...
+
+![xml](./readme_img/xml.JPG)
+
+애노테이션 기반 자바 코드 설저 사용
+- 지금까지 했던 것들
+- `new AnnotationConfigApplicationContext(AppConfig.class)`
+- `AnnotationConfigApplicationContext` 클래스를 사용하면서 자바 코드로된 설정 정보를 넘기면 된다.
+
+
+XML 설정 사용
+- 최근에는 스프링 부트를 많이 사용하면서 XML 기반 설정은 잘 사용X.
+- `GenericXmlApplicationContext`를 사용하면서 `xml` 설정 파일을 넘기면 된다.
+
+- xml 기반의 `appConfig.xml` 스프링 설정 정보와 자바 코드로 된 `AppConfig.java` 설정 정보를 비교해보면 거의 비슷하다는 것을 알 수 있다.
+- xml 기반으로 설정하는 것은 최근에 잘 사용X
+  - 필요할 경우 공식 레퍼런스 문서에서 확인.
+  - https://spring.io/projects/spring-framework
+
+
+
+
+
+---
 ---
 
 ## IntelliJ 단축키 모음집 & 참고
@@ -1727,6 +1755,7 @@ void findAllBeanByObjectType(){
     - [스프링 빈 조회 - 동일한 타입이 둘 이상](#스프링-빈-조회---동일한-타입이-둘-이상)
     - [스프링 빈 조회 - 상속 관계](#스프링-빈-조회---상속-관계)
     - [BeanFactory와 ApplicationContext](#beanfactory와-applicationcontext)
+    - [다양한 설정 형식 지원 - 자바 코드 ,XML](#다양한-설정-형식-지원---자바-코드-xml)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1763,5 +1792,6 @@ void findAllBeanByObjectType(){
     - [스프링 빈 조회 - 동일한 타입이 둘 이상](#스프링-빈-조회---동일한-타입이-둘-이상)
     - [스프링 빈 조회 - 상속 관계](#스프링-빈-조회---상속-관계)
     - [BeanFactory와 ApplicationContext](#beanfactory와-applicationcontext)
+    - [다양한 설정 형식 지원 - 자바 코드 ,XML](#다양한-설정-형식-지원---자바-코드-xml)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
