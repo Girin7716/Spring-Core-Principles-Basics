@@ -1630,7 +1630,44 @@ void findAllBeanByObjectType(){
     }
 }
 ```
+---
 
+### BeanFactory와 ApplicationContext
+ 
+![beanfactory](./readme_img/beanfactory.JPG)
+
+  - 그림을 보면 ApplicationContext는 BeanFactory에다가 부가기능을 더한거라고 이해된다.
+
+**BeanFactory**
+- 스프링 컨테이너의 최상위 인터페이스.
+- 스프링 빈을 관리, 조회하는 역할 담당
+- `getBean()`을 제공
+- 지금까지 사용한 대부분 기능은 BeanFactory가 제공하는 기능.
+
+**ApplicationContext**
+- BeanFactory의 기능을 모두 상속받아서 제공.
+- 빈을 관리하고 검색하는 기능을 BeanFactory가 제공해주는데, 차이점은?
+  - 애플리케이션을 개발할 때는 빈은 관리하고 조회하는 기능은 물론이고, 수 많은 **부가기능**이 필요하다.
+
+**ApplicationContext가 제공하는 부가기능**
+![application](./readme_img/application.JPG)
+   
+  - **메시지소스를 활용한 국제화 기능**
+    - ex> 한국에서 들어오면 한국어로, 영어권에서 들어오면 영어로 출력
+  - **환경변수**
+    - 로컬,개발,운영등을 구분해서 처리
+    - 개발할때는 크게 3가지 환경이 있음
+      - 로컬(내 PC), TEST 서버(개발 환경), 운영 환경(실제 서버) + 알파(스테이지 환경)(운영과 가장 밀접한 환경)
+  - **애플리케이션 이벤트**
+    - 이벤트를 발행하고 구독하는 모델을 편리하게 지원
+  - **편리한 리소스 조회**
+    - 파일, 클래스패스, 외부 등에서 리소스를 편리하게 조회.
+
+정리
+- ApplicationContext는 BeanFactory의 기능을 상속받는다.
+- ApplicationContext는 빈 관리기능 + 편리한 부가 기능을 제공.
+- BeanFactory를 직접 사용할 일은 거의 없다. 부가기능이 포함된 ApplicationContext를 사용한다.
+- BeanFactory나 ApplicationContext를 스프링 컨테이너라 한다.
 
 ---
 ---
@@ -1689,6 +1726,7 @@ void findAllBeanByObjectType(){
     - [스프링 빈 조회 - 기본](#스프링-빈-조회---기본)
     - [스프링 빈 조회 - 동일한 타입이 둘 이상](#스프링-빈-조회---동일한-타입이-둘-이상)
     - [스프링 빈 조회 - 상속 관계](#스프링-빈-조회---상속-관계)
+    - [BeanFactory와 ApplicationContext](#beanfactory와-applicationcontext)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1724,5 +1762,6 @@ void findAllBeanByObjectType(){
     - [스프링 빈 조회 - 기본](#스프링-빈-조회---기본)
     - [스프링 빈 조회 - 동일한 타입이 둘 이상](#스프링-빈-조회---동일한-타입이-둘-이상)
     - [스프링 빈 조회 - 상속 관계](#스프링-빈-조회---상속-관계)
+    - [BeanFactory와 ApplicationContext](#beanfactory와-applicationcontext)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
