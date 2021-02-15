@@ -1372,7 +1372,107 @@ void findApplicationBean(){
 
 ---
 
+### 스프링 빈 조회 - 기본
 
+`ac.getBean(빈이름, 타입)`
+
+`ac.getBean(타입)`
+
+조회 대상 스프링 빈이 없으면 예외 발생
+  
+  - `NoSuchBeanDefinitionException: No bean named 'xxxxx' available'`
+
+모든 빈 출력하기
+
+```java
+AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+
+@Test
+@DisplayName("모든 빈 출력하기")
+void findAllBean(){
+    String[] beanDefinitionNames = ac.getBeanDefinitionNames();
+    for (String beanDefinitionName : beanDefinitionNames) {
+        Object bean = ac.getBean(beanDefinitionName);
+        System.out.println("name = " + beanDefinitionName + " object = " + bean);
+    }
+}
+```
+
+애플리케이션 빈 출력하기
+
+```java
+@Test
+@DisplayName("애플리케이션 빈 출력하기")
+void findApplicationBean(){
+    String[] beanDefinitionNames = ac.getBeanDefinitionNames();
+    for (String beanDefinitionName : beanDefinitionNames) {
+        BeanDefinition beanDefinition = ac.getBeanDefinition(beanDefinitionName);//bean 하나하나에 대한 metadata 정보
+        // 스프링이 내부에서 뭔가 하기 위해서 등록한 빈이 아니라 내가 애플리케이션을 주로 개발하기위해서
+        // 등록한 빈(아니면 외부 라이브러리..)
+        if (beanDefinition.getRole() == BeanDefinition.ROLE_APPLICATION){
+            Object bean = ac.getBean(beanDefinitionName);
+            System.out.println("name = " + beanDefinitionName + " object = " + bean);
+        }
+    }
+}
+```
+
+빈 이름으로 조회
+
+```java
+@Test
+@DisplayName("빈 이름으로 조회")
+void findBeanByName(){
+    MemberService memberService = ac.getBean("memberService",MemberService.class);
+//        System.out.println("memberService = " + memberService);
+//        System.out.println("memberService.getClass() = " + memberService.getClass());
+    assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+}
+
+```
+
+이름 없이 타입으로만 조회
+
+```java
+@Test
+@DisplayName("이름 없이 타입으로만 조회")
+void findBeanByType(){
+    MemberService memberService = ac.getBean(MemberService.class);
+    assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+}
+```
+
+구체 타입으로 조회
+
+```java
+@Test
+@DisplayName("구체 타입으로 조회")
+void findBeanByName2(){
+    MemberService memberService = ac.getBean("memberService",MemberServiceImpl.class);
+    assertThat(memberService).isInstanceOf(MemberServiceImpl.class);
+}
+```
+  - 유연성이 떨어짐
+
+
+빈 이름으로 조회
+
+```java
+@Test
+@DisplayName("빈 이름으로 조회X")
+void findByBeanNameX(){
+//        ac.getBean("xxxxx", MemberService.class);
+    //MemberService xxxxx = ac.getBean("xxxxx", MemberService.class);
+    assertThrows(NoSuchBeanDefinitionException.class,
+            () -> ac.getBean("xxxxx", MemberService.class));
+}
+```
+  - assertThrows는 org.junit.jupiter.api.Assertions 거임.
+  ```java
+  assertThrows(NoSuchBeanDefinitionException.class,
+            () -> ac.getBean("xxxxx", MemberService.class)); 
+  ``` 
+    - 람다 : () -> ~~~ : 이 로직을 실행을 하면 `NoSuchBeanDefinitionException`이 터져야함(터지면 성공, 안터지면 실패)
 
 ---
 ---
@@ -1428,6 +1528,7 @@ void findApplicationBean(){
   - [스프링 컨테이너와 스프링 빈](#스프링-컨테이너와-스프링-빈)
     - [스프링 컨테이너 생성](#스프링-컨테이너-생성)
     - [컨테이너에 등록된 모든 빈 조회](#컨테이너에-등록된-모든-빈-조회)
+    - [스프링 빈 조회 - 기본](#스프링-빈-조회---기본)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1460,5 +1561,6 @@ void findApplicationBean(){
   - [스프링 컨테이너와 스프링 빈](#스프링-컨테이너와-스프링-빈)
     - [스프링 컨테이너 생성](#스프링-컨테이너-생성)
     - [컨테이너에 등록된 모든 빈 조회](#컨테이너에-등록된-모든-빈-조회)
+    - [스프링 빈 조회 - 기본](#스프링-빈-조회---기본)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
