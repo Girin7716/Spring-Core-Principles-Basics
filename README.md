@@ -1474,6 +1474,77 @@ void findByBeanNameX(){
   ``` 
     - 람다 : () -> ~~~ : 이 로직을 실행을 하면 `NoSuchBeanDefinitionException`이 터져야함(터지면 성공, 안터지면 실패)
 
+
+---
+
+### 스프링 빈 조회 - 동일한 타입이 둘 이상
+
+타입으로 조회시 같은 타입의 스프링 빈이 둘 이상이면 오류가 발생한다. 이때는 빈 이름을 지정하자.
+
+`ac.getBeanOfType()` 을 사용하면 해당 타입의 모든 빈을 조회할 수 있다.
+
+타입으로 조회시 같은 타입이 둘 이상 있으면, 중복 오류가 발생한다
+
+```java
+AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(SameBeanConfig.class);
+
+//NoUniqueBeanDefinitionException이 터짐
+@Test
+@DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 중복 오류가 발생한다")
+void findBeanByTypeDuplicate(){
+    assertThrows(NoUniqueBeanDefinitionException.class,
+            () -> ac.getBean(MemberRepository.class));
+}
+```
+
+타입으로 조회시 같은 타입이 둘 이상 있으면, 빈 이름을 지정하면 된다
+
+```java
+@Test
+@DisplayName("타입으로 조회시 같은 타입이 둘 이상 있으면, 빈 이름을 지정하면 된다")
+void findBeanByName(){
+    MemberRepository memberRepository = ac.getBean("memberRepository1",MemberRepository.class);
+    assertThat(memberRepository).isInstanceOf(MemberRepository.class);
+}
+```
+
+특정 타입을 모두 조회하기
+```java
+@Test
+@DisplayName("특정 타입을 모두 조회하기")
+void findAllBeanByType(){
+    //key : String, value : MemberRepository
+    Map<String, MemberRepository> beansOfType = ac.getBeansOfType(MemberRepository.class);
+    for (String key : beansOfType.keySet()) {
+        System.out.println("key = " + key + " value = " + beansOfType.get(key));
+    }
+    System.out.println("beansOfType = " + beansOfType);
+    assertThat(beansOfType.size()).isEqualTo(2);
+
+}
+```
+
+Test에서 따로 Config 생성
+```java
+// 중복을 검사해야하는데 Appconfig를 건들기 싫어서 새로 만듦
+//static인 이유 : scope을 이 안에서만 사용하겠다는 의미
+@Configuration
+static class SameBeanConfig {
+
+    @Bean
+    public MemberRepository memberRepository1() {
+        return new MemoryMemberRepository();
+    }
+
+    @Bean
+    public MemberRepository memberRepository2() {
+        return new MemoryMemberRepository();
+    }
+}
+```
+
+
+
 ---
 ---
 
@@ -1529,6 +1600,7 @@ void findByBeanNameX(){
     - [스프링 컨테이너 생성](#스프링-컨테이너-생성)
     - [컨테이너에 등록된 모든 빈 조회](#컨테이너에-등록된-모든-빈-조회)
     - [스프링 빈 조회 - 기본](#스프링-빈-조회---기본)
+    - [스프링 빈 조회 - 동일한 타입이 둘 이상](#스프링-빈-조회---동일한-타입이-둘-이상)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1562,5 +1634,6 @@ void findByBeanNameX(){
     - [스프링 컨테이너 생성](#스프링-컨테이너-생성)
     - [컨테이너에 등록된 모든 빈 조회](#컨테이너에-등록된-모든-빈-조회)
     - [스프링 빈 조회 - 기본](#스프링-빈-조회---기본)
+    - [스프링 빈 조회 - 동일한 타입이 둘 이상](#스프링-빈-조회---동일한-타입이-둘-이상)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
