@@ -1939,6 +1939,43 @@ void springContainer(){
 
 ---
 
+### 싱글톤 방식의 주의점
+
+- 싱글톤 패턴이든, 스프링 같은 싱글톤 컨테이너를 사용하든, 객체 인스턴스를 하나만 생성해서 공유하는 싱글톤 방식은 여러 클라이언트가 하나의 같은 객체 인스턴스를 공유하기 때문에 **싱글톤 객체는 상태를 유지(stateful)하게 설계하면 안된다.**
+- **무상태(stateless)로 설계**해야 한다.
+  - 특정 클라이언트에 의존적인 필드가 있으면 안된다.
+  - 특정 클라이언트가 값을 변경할 수 있는 필드가 있으면 안됨.
+  - 가급적 읽기만 가능.(가급적이면 값을 수정하면 안됨.)
+  - 필드 대신에 자바에서 공유되지 않는, 지역변수, 파라미터, ThreadLocal 등을 사용해야 한다.
+- 스프링 빈의 필드에 공유 값을 설정하면 정말 큰 장애가 발생할 수 있다. 
+
+```java
+@Test
+void statefulServiceSingleton(){
+    ApplicationContext ac = new AnnotationConfigApplicationContext(TestConfig.class);
+    StatefulService statefulService1 = ac.getBean(StatefulService.class);
+    StatefulService statefulService2 = ac.getBean(StatefulService.class);
+
+    //ThreadA : A 사용자가 10000원 주문
+    statefulService1.order("userA",10000);
+    //ThreadB : B 사용자가 20000원 주문
+    statefulService2.order("userB",20000);
+
+    //ThreadA : 사용자 A가 주문 금액을 조회
+    int price = statefulService1.getPrice();
+    System.out.println("price = " + price);
+}
+```
+  - 우리가 기대한 값은 10000원이다.(왜냐하면 statefulService1이 값을 조회했기 때문에)
+  - 하지만 실행하면 20000원이 나온다.(왜냐, 같은 객체를 공유하는데 중간에 사용자 B가 price를 바꿔버렸기 때문)
+
+  - 최대한 단순히 설명하기 위해, 실제 쓰레드는 사용하지 않았다.
+  - ThreadA가 사용자A 코드를 호출하고, ThreadB가 사용자B 코드를 호출한다고 가정.
+  - `StatefulService`의 `price` 필드는 공유되는 필드인데, 특정 클라이언트가 값을 변경.
+  - 사용자A의 주문금액은 10000원이 되어야 하는데, 20000원이라는 결과가 나옴.
+  - 실무에서 이런 경우를 종종 보는데, 이로인해 정말 해결하기 어려운 큰 문제들이 터진다.
+  - 공유필드는 조심!. 스프링 빈은 항상 무상태(stateless)로 설계해야함.
+
 
 ---
 ---
@@ -2004,6 +2041,7 @@ void springContainer(){
     - [웹 애플리케이션과 싱글톤](#웹-애플리케이션과-싱글톤)
     - [싱글톤 패턴](#싱글톤-패턴)
     - [싱글톤 컨테이너](#싱글톤-컨테이너-1)
+    - [싱글톤 방식의 주의점](#싱글톤-방식의-주의점)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2046,5 +2084,6 @@ void springContainer(){
     - [웹 애플리케이션과 싱글톤](#웹-애플리케이션과-싱글톤)
     - [싱글톤 패턴](#싱글톤-패턴)
     - [싱글톤 컨테이너](#싱글톤-컨테이너-1)
+    - [싱글톤 방식의 주의점](#싱글톤-방식의-주의점)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
