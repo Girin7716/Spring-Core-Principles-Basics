@@ -1976,6 +1976,41 @@ void statefulServiceSingleton(){
   - 실무에서 이런 경우를 종종 보는데, 이로인해 정말 해결하기 어려운 큰 문제들이 터진다.
   - 공유필드는 조심!. 스프링 빈은 항상 무상태(stateless)로 설계해야함.
 
+---
+
+### @Configuration과 싱글톤
+
+- @Bean memberService 호출하면 결과적으로 new MemoryMemberRepository()를 한번 호출함.
+
+- @Bean orderService 호출하면 결과적으로 new MemoryMemberRepository()를 호출
+
+- 위에서 MemoryMemberRepository()가 두 번 호출이 됨 ==> 싱글톤이 깨지는 것인가??
+
+위를 직접 테스트 해보기
+```java
+@Test
+void configurationTest(){
+    ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+
+    MemberServiceImpl memberService = ac.getBean("memberService", MemberServiceImpl.class);
+    OrderServiceImpl orderService = ac.getBean("orderService", OrderServiceImpl.class);
+    MemberRepository memberRepository = ac.getBean("memberRepository", MemberRepository.class);
+
+    MemberRepository memberRepository1 = memberService.getMemberRepository();
+    MemberRepository memberRepository2 = orderService.getMemberRepository();
+
+
+    System.out.println("memberService -> memberRepository1 = " + memberRepository1);
+    System.out.println("orderService -> memberRepository2 = " + memberRepository2);
+    System.out.println("memberRepository = " + memberRepository);
+
+    assertThat(memberService.getMemberRepository()).isSameAs(memberRepository);
+    assertThat(orderService.getMemberRepository()).isSameAs(memberRepository);
+}
+```
+- 확인해보면 memberRepository 인스턴스는 모두 같은 인스턴스가 공유되어 사용된다.
+- AppConfig의 자바 코드를 보면 분명히 각각 2번 `new MemoryMemberRepository` 호출해서 다른 인스턴스가 생성되어야 할거 같은데 `Appconfig`에서 객체 생성 부분에 soutm 해서 확인해보면 한번씩만 호출되는 사실을 알 수 있다.
+
 
 ---
 ---
@@ -2042,6 +2077,7 @@ void statefulServiceSingleton(){
     - [싱글톤 패턴](#싱글톤-패턴)
     - [싱글톤 컨테이너](#싱글톤-컨테이너-1)
     - [싱글톤 방식의 주의점](#싱글톤-방식의-주의점)
+    - [@Configuration과 싱글톤](#configuration과-싱글톤)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2085,5 +2121,6 @@ void statefulServiceSingleton(){
     - [싱글톤 패턴](#싱글톤-패턴)
     - [싱글톤 컨테이너](#싱글톤-컨테이너-1)
     - [싱글톤 방식의 주의점](#싱글톤-방식의-주의점)
+    - [@Configuration과 싱글톤](#configuration과-싱글톤)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
