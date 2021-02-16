@@ -1763,6 +1763,60 @@ Spring에 bean을 등록하는 법(크게 2가지)
 1. 직접 spring bean 등록(xml,...)
 2. 우회해서하기(factorymethod사용,자바 코드를 가지고 @Bean 등록하는 방법)
 
+---
+---
+
+## 싱글톤 컨테이너
+
+---
+---
+
+### 웹 애플리케이션과 싱글톤
+
+- 싱글톤 패턴 : 객체가 현재 JVM안에 하나만 있어야하는 그러한 패턴
+- 스프링은 태생이 기업용 온라인 서비스 기술을 지원하기 위해 탄생.
+- 대부분의 스프링 애플리케이션은 웹 애플리케이션이다. 물론 웹이 아닌 애플리케이션 개발(batch, demon...)도 얼마든지 개발할 수 있다.
+- 웹 애플리케이션은 보통 여러 고객이 동시에 요청을 한다.
+
+![single](./readme_img/single.JPG)
+  - 클라이언트 A,B,C가 spring한테 동시에 요청을 함.
+  - 우리가 직접 만든 DI 컨테이너(AppConfig)에서 객체를 반환함.
+  - 즉, 고객이 3번 요청하면 객체가 3개 생성이 됨.
+  - 계속 요청이 올때마다 객체를 만들어야하는데, 이러한 점이 문제점이다.
+
+```java
+@Test
+@DisplayName("스프링 없는 순수한 DI 컨테이너")
+void pureContainer(){
+    AppConfig appConfig = new AppConfig();
+    //1. 조회: 호출할 때 마다 객체를 생성
+    MemberService memberService1 = appConfig.memberService();
+
+    //2. 조회: 호출할 때 마다 객체를 생성
+    MemberService memberService2 = appConfig.memberService();
+
+    //참조값이 다른 것을 확인
+    System.out.println("memberService1 = " + memberService1);
+    System.out.println("memberService2 = " + memberService2);
+
+    //memberService1 != memberService2
+    assertThat(memberService1).isNotSameAs(memberService2);
+}
+```
+  - 실행결과
+    ![result](./readme_img/result.JPG)
+  - 객체가 서로 다르다.
+  - 즉, JVM 메모리에 계속 객체를 생성해서 올라가게 된다.
+  - 웹 애플리케이션의 특징은 고객 요청이 엄청 많은데 이런식으로 계속 객체를 생성하는 것은 효율적이지 않다.
+  - 우리가 과거에 만들었던 스프링 없는 순수한 DI 컨테이너인 AppConfig는 요청을 할 때 마다 객체를 서로 생성한다.
+  - 고객 트래픽이 초당 100이 나오면 초당 100개 객체가 생성되고 소멸된다 == **메모리 낭비가 심하다**
+  - 해결방안은 해당 객체가 딱 **1개만 생성**되고, **공유**하도록 설계하면 된다 -> **싱글톤 패턴**
+
+
+---
+
+
+
 
 ---
 ---
@@ -1824,6 +1878,8 @@ Spring에 bean을 등록하는 법(크게 2가지)
     - [BeanFactory와 ApplicationContext](#beanfactory와-applicationcontext)
     - [다양한 설정 형식 지원 - 자바 코드 ,XML](#다양한-설정-형식-지원---자바-코드-xml)
     - [스프링 빈 설정 메타 정보 - BeanDefinition](#스프링-빈-설정-메타-정보---beandefinition)
+  - [싱글톤 컨테이너](#싱글톤-컨테이너)
+    - [웹 애플리케이션과 싱글톤](#웹-애플리케이션과-싱글톤)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1862,5 +1918,7 @@ Spring에 bean을 등록하는 법(크게 2가지)
     - [BeanFactory와 ApplicationContext](#beanfactory와-applicationcontext)
     - [다양한 설정 형식 지원 - 자바 코드 ,XML](#다양한-설정-형식-지원---자바-코드-xml)
     - [스프링 빈 설정 메타 정보 - BeanDefinition](#스프링-빈-설정-메타-정보---beandefinition)
+  - [싱글톤 컨테이너](#싱글톤-컨테이너)
+    - [웹 애플리케이션과 싱글톤](#웹-애플리케이션과-싱글톤)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
