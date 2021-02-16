@@ -1815,6 +1815,90 @@ void pureContainer(){
 
 ---
 
+### 싱글톤 패턴
+
+- 클래스의 인스턴스가 딱 1개만 생성되는 것을 보장하는 디자인 패턴이다.
+  - 한 JVM, 한 java 서버 안에서는 객체의 인스턴스가 딱 1개만 생성되도록 하는 디자인 패턴.
+- 그래서 객체 인스턴스를 2개 이상 생성하지 못하도록 막아야 한다.
+  - private 생성자를 사용해서 외부에서 임의로 new 키워드를 사용하지 못하도록 막아야 한다.
+
+```java
+public class SingletonService {
+
+    private static final SingletonService instace = new SingletonService();
+    
+  
+    ....
+}
+```
+  - 자기 자신을 내부에 private static으로 가지고 있다.
+    - 이렇게 하면, class level에 올라가기때문에 딱 1개만 존재하게 된다.
+  - JVM, 자바가 뜰 때, SingletonService에 static이라고 되어있고 그 오른쪽에 new라고 되어있는걸 보고 new SingletonService()를 내부적으로 실행시켜 이 객체(자기자신)을 생성해서 `instance`에 참조를 넣어둠. 그러면, 자기 자신의 객체 인스턴스를 생성해서 저기 안에만 들어가있는거임.
+
+```java
+public static SingletonService getInstace(){
+    return instace;
+}
+```
+  - 조회할때는, getInstance()를 사용하면 됨.
+
+```java
+private SingletonService(){
+        
+}
+```
+  - 다른 곳에서 new를 통해 객체를 생성하는 것을 방지하기 위해 private으로 만듦.
+
+```java
+public void logic(){
+    System.out.println("싱글톤 객체 로직 호출");
+}
+```
+  - 그냥 로직임
+
+위의 코드들을 통해 `싱글톤`이 됨.
+1. static 영역에 객체 instance를 미리 하나 생성해서 올려둔다.
+2. 이 객체 인스턴스가 필요하면 오직 `getInstance()` 메서드를 통해서만 조회할 수 있다. 이 메서드를 호출하면 항상 같은 인스턴스를 반환한다.
+3. 딱 1개의 객체 인스턴스만 존재해야 하므로, 생성자를 private으로 막아서 혹시라도 외부에서 new 키워드로 객체 인스턴스가 생성되는 것을 막는다.
+
+
+singleton test
+```java
+@Test
+@DisplayName("싱글톤 패턴을 적용한 객체 사용")
+void singletonServiceTest(){
+    SingletonService singletonService1 = SingletonService.getInstace();
+    SingletonService singletonService2 = SingletonService.getInstace();
+
+    System.out.println("singletonService1 = " + singletonService1);
+    System.out.println("singletonService2 = " + singletonService2);
+    
+}
+```
+   - 실행을하면, 같은 객체인것을 확인할 수 있다.
+
+- 그렇다면, AppConfig를 모두 다 싱글톤 패턴으로 바꿔야하나?
+  - 그럴필요는 없다.
+  - spring container를 사용하면 spring container가 기본적으로 객체를 싱글톤은로 만들어서 관리 해줌.
+- 싱글톤 패턴이 적용이되면, 이제 고객 요청이 초당 100개가 와서 처리해야되어도 객체를 만들지않고 있는 객체를 그대로 재활용함 == 성능이 좋아짐.
+
+
+- 싱글톤 패턴을 구현하는 방법은 여러가지가 있다.
+  - 위의 방법은, 객체를 미리 생성해두는 가장 단순하고 안전한 방법.
+  - 기타등등
+
+**싱글톤 패턴 문제점**
+- 싱글톤 패턴을 구현하는 코드 자체가 많이 들어간다.
+- 의존관계상 클라이언트가 구체 클래스에 의존한다 -> DIP를 위반.
+- 클라이언트가 구체 클래스에 의존해서 OCP 원칙 위반할 가능성이 높다.
+- 테스트하기 어렵다.
+- 내부 속성을 변경하거나 초기화 하기 어렵다.
+- private 생성자로 자식 클래스를 만들기 어렵다.
+- 결론적으로 유연성이 떨어진다.
+- 안티패턴으로 불리기도 한다.
+
+---
+
 
 
 
@@ -1880,6 +1964,7 @@ void pureContainer(){
     - [스프링 빈 설정 메타 정보 - BeanDefinition](#스프링-빈-설정-메타-정보---beandefinition)
   - [싱글톤 컨테이너](#싱글톤-컨테이너)
     - [웹 애플리케이션과 싱글톤](#웹-애플리케이션과-싱글톤)
+    - [싱글톤 패턴](#싱글톤-패턴)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -1920,5 +2005,6 @@ void pureContainer(){
     - [스프링 빈 설정 메타 정보 - BeanDefinition](#스프링-빈-설정-메타-정보---beandefinition)
   - [싱글톤 컨테이너](#싱글톤-컨테이너)
     - [웹 애플리케이션과 싱글톤](#웹-애플리케이션과-싱글톤)
+    - [싱글톤 패턴](#싱글톤-패턴)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
