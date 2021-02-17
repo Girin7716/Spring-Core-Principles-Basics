@@ -2145,7 +2145,7 @@ public class AutoAppConfig {
 
   `com.hello`가 프로젝트 시작 루트, 여기에 AppConfig 같은 메인 설정 정보를 두고, `@ComponentScan` 애노테이션을 붙이고, `basePackages` 지정은 생략한다. 
 
-  이렇게 하면 `com.hello`를 포함한 하위는 모두 자동으로 컴포너틑 스캔의 대상이 된다. 그리고 프로젝트 메인 설정 정보는 프로젝트를 대표하는 정보이기 때문에 프로젝트 시작 루트 위치에 두는 것이 좋다 생각한다.
+  이렇게 하면 `com.hello`를 포함한 하위는 모두 자동으로 컴포넌트 스캔의 대상이 된다. 그리고 프로젝트 메인 설정 정보는 프로젝트를 대표하는 정보이기 때문에 프로젝트 시작 루트 위치에 두는 것이 좋다 생각한다.
   
   참고로 스프링 부트를 사용하면 스프링 부트의 대표 시작 정보인 `@SpringBootApplication`를 이 프로젝트 시작 루트 위치에 두는 것이 관례이다. (그리고 이 설정안에 바로 `@ComponentScan`이 들어있다!)
 
@@ -2167,8 +2167,50 @@ public class AutoAppConfig {
 
   > 참고 : `useDefaultFilters` 옵션은 기본으로 켜져있는데, 이 옵션을 끄면 기본 스캔 대상들이 제외된다. 
 
+---
+
+### 필터
+
+- `includeFilters` : 컴포넌트 스캔 대상을 추가로 지정.
+- `excludeFilters` : 컴포넌트 스캔에서 제외할 대상을 지정.
+
+```java
+@Configuration
+@ComponentScan(
+    includeFilters = @Filter(type = FilterType.ANNOTATION, classes = MyIncludeComponent.class),
+    excludeFilters = @Filter(type = FilterType.ANNOTATION, classes = MyExcludeComponent.class)
+)
+```
+- `includeFilters`에 `MyIncludeComponent` 애노테이션을 추가해서 BeanA가 스프링 빈에 등록된다.
+- `excludeFilters`에 `MyExcludeComponent` 애노테이션을 추가해서 BeanB는 스프링 빈에 등록되지 않는다.
+
+FilterType 옵션은 5가지 옵션이 있다.
+- ANNOTATION : 기본값, 애노테이션을 인식해서 동작한다.
+  - ex> `org.example.SomeAnnotation`
+- ASSIGNABLE_TYPE : 지정한 타입과 자식 타입을 인식해서 동작한다.
+  - ex> `org.example.SomeClass`
+- ASPECTJ: AspectJ 패턴 사용
+  - ex> `org.example..*Service+`
+- REGEX : 정규 표현식
+  - ex> `org\.example\.Default.*`
+- CUSTOM : `TypeFilter`이라는 인터페이스를 구현해서 처리
+  - ex> `org.example.MyTypeFilter`
 
 
+예를들어서 `BeanA`도 빼고 싶으면 아래와 같이 코드 작성.
+```java
+@ComponentScan(
+  includeFilters = {
+    @Filter(type = FilterType.ANNOTATION, classes = MyIncludeComponent.class),
+  },
+  excludeFilters = {
+    @Filter(type = FilterType.ANNOTATION, classes = MyExcludeComponent.class),
+    @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = BeanA.class)
+  }
+)
+```
+>참고 : `@Component` 면 충분하기 때문에, `includeFilters`를 사용할 일은 거의 없다. `excludeFilters`는 여러가지 이유로 간혹 사용할 때가 있지만 많지는 않다.<br>
+특히 최근 스프링 부트는 컴포넌트 스캔을 기본으로 제공하는데, 개인적으로는 옵션을 변경하면서 사용하기 보다는 스프링의 기본 설정에 최대한 맞추어 사용하는 것을 권장하고, 선호하는 편이다.
 
 ---
 ---
@@ -2240,6 +2282,7 @@ public class AutoAppConfig {
   - [컴포넌트 스캔](#컴포넌트-스캔)
     - [컴포넌트 스캔과 의존관계 자동 주입 시작하기](#컴포넌트-스캔과-의존관계-자동-주입-시작하기)
     - [탐색 위치와 기본 스캔 대상](#탐색-위치와-기본-스캔-대상)
+    - [필터](#필터)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2288,5 +2331,6 @@ public class AutoAppConfig {
   - [컴포넌트 스캔](#컴포넌트-스캔)
     - [컴포넌트 스캔과 의존관계 자동 주입 시작하기](#컴포넌트-스캔과-의존관계-자동-주입-시작하기)
     - [탐색 위치와 기본 스캔 대상](#탐색-위치와-기본-스캔-대상)
+    - [필터](#필터)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
