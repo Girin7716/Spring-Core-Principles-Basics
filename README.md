@@ -2213,6 +2213,56 @@ FilterType 옵션은 5가지 옵션이 있다.
 특히 최근 스프링 부트는 컴포넌트 스캔을 기본으로 제공하는데, 개인적으로는 옵션을 변경하면서 사용하기 보다는 스프링의 기본 설정에 최대한 맞추어 사용하는 것을 권장하고, 선호하는 편이다.
 
 ---
+
+### 중복 등록과 충돌
+
+컴포넌트 스캔에서 같은 빈 이름을 등록하면 다음과 같은 두가지 상황이 있다.
+
+1. 자동 빈 등록 vs 자동 빈 등록
+2. 수동 빈 등록 vs 자동 빈 등록
+
+
+자동 빈 등록 vs 자동 빈 등록
+- 컴포넌트 스캔에 의해 자동으로 스프링 빈이 등록되는데, 그 이름이 같은 경우 스프링은 오류를 발생시킨다.
+  - `ConflictingBeanDefinitionException` 예외 발생
+
+수동 빈 등록 vs 자동 빈 등록
+
+
+```java
+@Component
+public class MemoryMemberRepository implements MemberRepository{
+```
+
+```java
+@Configuration
+@ComponentScan(
+        basePackages = "hello.core.member",
+        excludeFilters = @ComponentScan.Filter(type= FilterType.ANNOTATION, classes = Configuration.class)
+)
+public class AutoAppConfig {
+
+    @Bean(name = "memoryMemberRepository")
+    MemberRepository memberRepository(){
+        return new MemoryMemberRepository();
+    }
+}
+```
+
+이 경우 수동 빈 등록이 우선권을 가진다.(수동 빈이 자동 빈을 오버라이딩 해버린다.)
+
+**수동 빈 등록시 남는 로그**
+```text
+Overriding bean definition for bean 'memoryMemberRepository' with a different definition: replacing ....
+```
+개발자가 의도했다면 이해하지만, 현실은 개발자가 의도적으로 설정해서 이런 결과가 만들어지기 보다는 여러 설정들이 꼬여서 이런 결과가 만들어지는 경우가 대부분이다.<br>
+**그러면 정말 잡기 어려운 버그가 만들어진다. 항상 잡기 어려운 버그는 애매한 버그다**<br>
+그래서 최근 스프링 부트에서는 수동 빈 등록과 자동 빈 등록이 충돌나면 오류가 발생하도록 기본 값을 바꾸었다.
+
+
+
+
+---
 ---
 
 ## IntelliJ 단축키 모음집 & 참고
@@ -2283,6 +2333,7 @@ FilterType 옵션은 5가지 옵션이 있다.
     - [컴포넌트 스캔과 의존관계 자동 주입 시작하기](#컴포넌트-스캔과-의존관계-자동-주입-시작하기)
     - [탐색 위치와 기본 스캔 대상](#탐색-위치와-기본-스캔-대상)
     - [필터](#필터)
+    - [중복 등록과 충돌](#중복-등록과-충돌)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2332,5 +2383,6 @@ FilterType 옵션은 5가지 옵션이 있다.
     - [컴포넌트 스캔과 의존관계 자동 주입 시작하기](#컴포넌트-스캔과-의존관계-자동-주입-시작하기)
     - [탐색 위치와 기본 스캔 대상](#탐색-위치와-기본-스캔-대상)
     - [필터](#필터)
+    - [중복 등록과 충돌](#중복-등록과-충돌)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
