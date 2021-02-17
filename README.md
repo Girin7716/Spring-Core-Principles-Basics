@@ -2051,6 +2051,73 @@ void configurationDeep(){
 
 - 크게 고민할 것이 없다. 스프링 설정 정보는 항상 `@Configuration`을 사용하자.
 
+---
+---
+
+## 컴포넌트 스캔
+
+---
+---
+
+### 컴포넌트 스캔과 의존관계 자동 주입 시작하기
+
+- 지금까지 스프링 빈을 등록할 때는 자바 코드의 @Bean이나 XML의 `<bean>`등을 통해서 설정 정보에 직접 등록할 스프링 빈을 나열했다.
+- 예제에서는 몇개가 안되었지만, 스프링 빈이 수십 수백가되면 일일이 등록하기 귀찮고, 설정 정보가 커지고, 반복하고, 누락하는 문제가 발생.
+- 그래서 **스프링은 설정 정보가 없어도 자동으로 스프링 빈을 등록하는 컴포넌트 스캔이라는 기능**을 제공.
+- 또 **의존관계도 자동으로 주입하는 `@Autowired`라는 기능도 제공**
+
+```java
+@ComponentScan(
+    excludeFilters = @ComponentScan.Filter(type= FilterType.ANNOTATION)
+)
+```
+- @Component가 붙은 클래스를 찾아서 자동으로 스프링 빈으로 등록해줌
+- 그중에서 자동으로 뺄 것들도 있다.(Configuration 애노테이션이 붙은 아이들)
+
+```java
+@Configuration
+@ComponentScan(
+    excludeFilters = @ComponentScan.Filter(type= FilterType.ANNOTATION, classes = Configuration.class)
+)
+public class AutoAppConfig {
+}
+```
+- 컴포넌트 스캔을 사용하려면 먼저 `@ComponetScan`을 설정 정보에 붙여주면 된다.
+- 기존의 `AppConfig`와는 다르게 `@Bean`으로 등록한 클래스가 하나도 없다.
+
+>참고 : 컴포넌트 스캔을 사용하면 `@Configuration` 이 붙은 설정 정보도 자동으로 등록되기 때문에, AppConfig, TestConfig 등 앞서 만들어두었던 설정 정보도 함께 등록되고 실행되어 버린다. 그래서 `excludeFilters`를 이용해서 설정정보는 컴포넌트 스캔 대상에서 제외했다. 보통 설정 정보를 컴포넌트 스캔 대상에서 제외하지는 않지만, 기존 예제 코드를 최대한 남기고 유지하고 싶어 이 방법을 선택했다.
+
+컴포넌트 스캔은 이름 그대로 `@Component` 애노테이션이 붙은 클래스를 스캔해서 스프링 빈으로 등록한다. `@Component`를 붙여주자.(+@Autowired)
+
+- 이전에 AppConfig에서는 `@Bean`으로 직접 설정 정보를 작성했고, 의존관계도 직접 명시했다. 이제는 이런 설정 정보 자체가 없기 때문에, 의존관계 주입도 이 클래스 안에서 해결해야 한다.
+- `@Autowired`는 의존관계를 자동으로 주입해준다. 자세한 룰은 조금 뒤에 설명하겠다.
+
+
+
+
+1. **ComponentScan**
+  - ![component_scan](./readme_img/component_scan.JPG)
+   - `@ComponentScan`은 `@Component`가 붙은 모든 클래스를 스프링 빈으로 등록한다.
+   - 이때 스프링 빈의 기본 이름은 `클래스명`을 사용하되 맨 앞글자만 소문자를 사용한다
+   - **빈 이름 기본 전략** : MemberServiceImpl 클래스 -> memberServiceImpl
+   - **빈 이름 직접 지정** : 만약 스프링 빈의 이름을 직접 지정하고 싶으면 `@Component("memberServiceImpl")` 이런식으로 이름을 부여하면 된다.
+  
+2. **@Autowired 의존관계 자동 주입**
+  - ![autowired](./readme_img/autowired.JPG)
+  - 생성자에 `@Autowired`를 지정하면, 스프링 컨테이너가 자동으로 해당 스프링 빈을 찾아서 주입한다.
+  - 이때 기본 조회 전략은 탕비이 같은 빈을 찾아서 주입한다.
+    - `getBean(MemberRepository.clasS)` 와 동일하다고 이해하면 된다.
+    - 더 자세한 내용은 뒤에서 설명.
+  - 생성자에 파라미터가 많아도 다 찾아서 자동으로 주입한다.
+
+혼자 정리
+- AutoAppConfig에 `@ComponentScan`
+- 자동으로 class path를 뒤져가면서 다 spring bin에 등록
+  - 전부 등록하는 것은 아니고 `@Component`가 붙은 class만 스프링 빈에 등록.
+- 그런데, `@Component`가 붙은 class를 스프링 빈으로 등록하면 의존관계를 주입할 수 있는 방법이 없다.
+  - 이전에 수동으로 할 때에는 설정정보에서 다 적어줌.
+  - 하지만 AutoAppConfig는 설정정보를 안사용하기 때문에 그래서 `@Autowired`를 통해 의존관계 자동 주입을 사용한다.
+- `@Autowired`는 기본적으로 `타입`을 가지고 등록을 해준다.
 
 
 ---
@@ -2120,6 +2187,8 @@ void configurationDeep(){
     - [싱글톤 방식의 주의점](#싱글톤-방식의-주의점)
     - [@Configuration과 싱글톤](#configuration과-싱글톤)
     - [@Configuration과 바이트코드 조작의 마법](#configuration과-바이트코드-조작의-마법)
+  - [컴포넌트 스캔](#컴포넌트-스캔)
+    - [컴포넌트 스캔과 의존관계 자동 주입 시작하기](#컴포넌트-스캔과-의존관계-자동-주입-시작하기)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2165,5 +2234,7 @@ void configurationDeep(){
     - [싱글톤 방식의 주의점](#싱글톤-방식의-주의점)
     - [@Configuration과 싱글톤](#configuration과-싱글톤)
     - [@Configuration과 바이트코드 조작의 마법](#configuration과-바이트코드-조작의-마법)
+  - [컴포넌트 스캔](#컴포넌트-스캔)
+    - [컴포넌트 스캔과 의존관계 자동 주입 시작하기](#컴포넌트-스캔과-의존관계-자동-주입-시작하기)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
