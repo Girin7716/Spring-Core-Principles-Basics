@@ -1,6 +1,7 @@
 package hello.core.discount;
 
 import hello.core.member.Member;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public interface DiscountPolicy {
 

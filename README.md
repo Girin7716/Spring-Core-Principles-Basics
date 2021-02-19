@@ -2522,6 +2522,38 @@ public class OrderServiceImpl implements OrderService{
 최근에는 생성자를 딱 1개 두고, `@Autowired`를 생략하는 방법을 주로 사용한다. 여기에 Lombok 라이브러리의 `@RequiredArgsConstructor` 함께 사용하면 기능은 다 제공하면서, 코드는 깔끔하게 사용할 수 있다.
 
 ---
+
+### 조회 빈이 2개 이상 - 문제
+
+`@Autowired`는  타입(Type)으로 조회한다.
+```java
+@Autowired
+private DiscountPolicy discountPolicy
+```
+타입으로 조회하기 때문에, 마치 다음 코드와 유사하게 동작.
+`ac.getBean(DiscountPolicy.class)`
+
+스프링 빈 조회해서 학습했듯이 타입으로 조회하면 선택된 빈이 2개 이상일 때 문제가 발생한다.<br>
+`DiscountPolicy`의 하위 타입인 `FixDiscountPolicy`, `RateDiscountPolicy` 둘다 스프링 빈으로 선언해보자.
+
+```java
+@Component
+public class FixDiscountPolicy implements DiscountPolicy()
+```
+```java
+@Component
+public class RateDiscountPolicy implements DiscountPolicy()
+```
+
+`NoUniqueBeanDefinitionException` 오류 발생.
+
+오류메시지에서는 `fixDiscountPolicy`,`rateDiscountPolicy` 2개가 발견되었다고 말한다.
+
+이때 하위 타입으로 지정할 수도 있지만, 하위 타입으로 지정하는 것은 DIP를 위배하고 유연성이 떨어진다. 그리고 이름만 다르고, 완전히 똑같은 타입의 스프링 빈이 2개 있을 때 해결이 안된다.
+
+스프링 빈을 수동 등록해서 문제를 해결해도 되지만, 의존 관계 자동 주입에서 해결하는 여러 방법이 있다.
+
+---
 ---
 
 ## IntelliJ 단축키 모음집 & 참고
@@ -2598,6 +2630,7 @@ public class OrderServiceImpl implements OrderService{
     - [옵션 처리](#옵션-처리)
     - [생성자 주입을 선택해라!](#생성자-주입을-선택해라)
     - [롬복과 최신 트랜드](#롬복과-최신-트랜드)
+    - [조회 빈이 2개 이상 - 문제](#조회-빈이-2개-이상---문제)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2653,5 +2686,6 @@ public class OrderServiceImpl implements OrderService{
     - [옵션 처리](#옵션-처리)
     - [생성자 주입을 선택해라!](#생성자-주입을-선택해라)
     - [롬복과 최신 트랜드](#롬복과-최신-트랜드)
+    - [조회 빈이 2개 이상 - 문제](#조회-빈이-2개-이상---문제)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
