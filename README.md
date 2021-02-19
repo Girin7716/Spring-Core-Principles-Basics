@@ -2501,6 +2501,27 @@ public class OrderServiceImpl implements OrderService{
 - 항상 생성자 주입을 선택해라! 그리고 가끔 옵션이 필요하면 수정자 주입을 선택해라. 필드 주입은 사용하지 않는게 좋다.
 
 ---
+
+### 롬복과 최신 트랜드
+
+막상 개발으 해보면, 대부분이 다 불변이고, 그래서 다음과 같이 생성자에 final 키워드를 사용하게 된다. <br>
+그런데 생성자도 만들어야 하고, 주입 받은 값을 대입하는 코드도 만들어야 하고... <br>
+필드 주입처럼 좀 편리하게 사용하는 방법은 없을까? 
+
+1. `build.gradle`에 라이브러리 및 환경 추가
+2. File->Settings -> plugin -> lombok 검색 설치 실행
+3. File->Settings -> Annotation Processors 검색 -> Enable annotation processing 체크
+4. 임의의 테스트 클래스를 만들고 @Getter, @Setter 확인
+
+`@RequiredArgsConstructor`
+- `final`이 붙은 필드를 모아서 생성자를 자동으로 만들어준다.
+- 코드가 정말 간결해진다.
+- 롬복이 자바의 애노테이션 프로세서라는 기능을 이용해서 컴파일 시점에 생성자 코드를 자동으로 생성해준다. 실제 `class`를 열어보면 다음 코드가 추가되어 있는 것을 확인할 수 있다.
+
+**정리**
+최근에는 생성자를 딱 1개 두고, `@Autowired`를 생략하는 방법을 주로 사용한다. 여기에 Lombok 라이브러리의 `@RequiredArgsConstructor` 함께 사용하면 기능은 다 제공하면서, 코드는 깔끔하게 사용할 수 있다.
+
+---
 ---
 
 ## IntelliJ 단축키 모음집 & 참고
@@ -2576,6 +2597,7 @@ public class OrderServiceImpl implements OrderService{
     - [다양한 의존관계 주입 방법](#다양한-의존관계-주입-방법)
     - [옵션 처리](#옵션-처리)
     - [생성자 주입을 선택해라!](#생성자-주입을-선택해라)
+    - [롬복과 최신 트랜드](#롬복과-최신-트랜드)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2630,5 +2652,6 @@ public class OrderServiceImpl implements OrderService{
     - [다양한 의존관계 주입 방법](#다양한-의존관계-주입-방법)
     - [옵션 처리](#옵션-처리)
     - [생성자 주입을 선택해라!](#생성자-주입을-선택해라)
+    - [롬복과 최신 트랜드](#롬복과-최신-트랜드)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
