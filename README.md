@@ -2554,6 +2554,103 @@ public class RateDiscountPolicy implements DiscountPolicy()
 스프링 빈을 수동 등록해서 문제를 해결해도 되지만, 의존 관계 자동 주입에서 해결하는 여러 방법이 있다.
 
 ---
+
+### @Autowired 필드 명, @Qualifier, @Primary
+
+조회 대상 빈이 2개 이상일 때 해결 방법
+- @Autowired 필드 명 매칭
+- @Quilifer -> @Quilifier낄 ㅣ매칭 -> 빈 이름 매칭
+- @Primary 사용
+
+@Autowired 필드 명 매칭
+
+- `@Autowired`는 타입 매칭을 시도하고, 이때 여러 빈이 있으면 필드 이름, 파라미터 이름으로 빈 이름을 추가 매칭한다.
+
+- 기존코드
+```java
+@Autowired
+private DiscountPolicy discountPolicy
+```
+
+- 필드 명을 빈 이름으로 변경
+```java
+Autowired
+private DiscountPolicy rateDiscountPolicy
+```
+
+필드 명이 `rateDiscountPolicy`이므로 정상 주입된다.<br>
+**필드 명 매칭은 먼저 타입 매칭을 시도 하고 그 결과에 여러 빈이 있을 때 추가로 동작하는 기능이다.**
+
+**Autowired 매칭 정리**
+1. 타입 매칭
+2. 타입 매칭의 결과가 2개 이상일 때 필드 명, 파라미터 명으로 빈 이름 매칭
+
+@Quilifier 사용
+`Quilifier`는 추가 구분자를 붙여주는 방법이다. 주입시 추가적인 방법을 제공하는 것이지 빈 이름을 변경하는 것은 아니다.
+
+**빈 등록시 @Qualifier를 붙여 준다**
+```java
+@Component
+@Qualifier("mainDiscountPolicy")
+public class RateDiscountPolicy implements DiscountPolicy{}
+```
+```java
+@Component
+@Qualifier("fixDiscountPolicy")
+public class FixDiscountPolicy implements DiscountPolicy{}
+```
+
+**주입시에 @Qualifier를 붙여주고 등록한 이름을 적어준다.**
+
+**생성자 자동 주입 예시**
+```java
+@Autowired
+public OrderServiceImpl(MemberRepository memberRepository, @Qualifier("mainDiscountPolicy") DiscountPolicy discountPolicy){
+  this.memberRepository = memberRepository;
+  this.discountPolicy = discountPolicy;
+}
+```
+
+**수정자 자동 주입 예시**
+```java
+@Autowired
+public DiscountPolicy setDiscountPolicy(@Qualifier("mainDiscountPolicy") DicounstPolicy discountPolicy){
+  return discountPolicy;
+}
+```
+
+`@Qualifier`로 주입할 때 `@Qulifier("mainDiscountPolicy")`를 못찾으면 어떻게 될까? 그러면 mainDiscountPolicy라는 이름의 스프링 빈을 추가로 찾는다. 하지만 경험상 `@Qualifier`는 `@Qulifier`를 찾는 용도로만 사용하는게 명확하고 좋다.
+
+다음과 같이 직접 빈 등록시에도 @Qualifier를 동일하게 사용할 수 있다.
+```java
+@Bean
+@Qualifier("mainDiscountPolicy")
+public DiscountPolicy discountPolicy(){
+  return new...
+}
+```
+
+**@Qualifier 정리**
+1. @Qualifier끼리 매칭
+2. 빈 이름 매칭
+3. `NosuchBeanDefinitionException` 예외 발생
+
+**@Primary 사용**
+`@Primary`는 우선순위를 정하는 방법이다. @Autowired 시에 여러 빈 매칭되면 `@Primary`가 우선권을 가진다.
+
+main DB(90%)와 보조 DB(10%)가 있다고 가정하고, main DB를 가져오는 커넥션을 할때에도 Qualifier를 해주고, 보조 DB를 가져올때도 Qualifier하기에는 귀찮다. 그래서 main DB 가져오는 코드에는 `@Primary`를 걸어준다. 
+
+`@Qualifier`의 단점은 주입 받을 때 모든 코드에 `@Qualifier`를 붙여주어야 한다는 점이다.
+
+반면에 `@Primary`는 `@Qualifer`를 붙일 필요가 없다.
+
+**@Primary, @Qualifier 활용**
+코드에서 자주 사용하는 메이 db의 커넥션을 획득하는 스프링 빈이 있고, 코드에서 특별한 기능으로 가끔 사용하는 서브 db의 커넥션을 획득하는 스프링 빈이 있다고 생각해보자. 메인 db의 커넥션을 획득하는 스프링 빈은 `@Primary`를 적용해서 조회하는 곳에서 `@Qualifier` 지정 없이 편리하게 조회하고, 서브 db 커넥션 빈을 획득 할 때는 `@Qualifer`를 지정해서 명시적으로 획득 하는 방식으로 사용하면 코드를 깔끔하게 유지할 수 있다. 물론 이때 메인 db의 스프링 빈을 등록할 때, `Qualifier`를 지정해주는 것은 상관없다.
+
+**우선순위**
+`@Primary`는 기본값 처럼 동작하는 것이고, `@Qualifier`는 매우 상세하게 동작한다. 이런 경우 어떤 것이 우선권을 가져갈까? 스프링은 자동보다는 수동이, 넓은 범위의 선택권 보다는 좁은 범위의 선택권이 우선 순위가 높다. 따라서 여기서도 `@Qualifier`가 우선권이 높다.
+
+---
 ---
 
 ## IntelliJ 단축키 모음집 & 참고
@@ -2631,6 +2728,7 @@ public class RateDiscountPolicy implements DiscountPolicy()
     - [생성자 주입을 선택해라!](#생성자-주입을-선택해라)
     - [롬복과 최신 트랜드](#롬복과-최신-트랜드)
     - [조회 빈이 2개 이상 - 문제](#조회-빈이-2개-이상---문제)
+    - [@Autowired 필드 명, @Qualifier, @Primary](#autowired-필드-명-qualifier-primary)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2687,5 +2785,6 @@ public class RateDiscountPolicy implements DiscountPolicy()
     - [생성자 주입을 선택해라!](#생성자-주입을-선택해라)
     - [롬복과 최신 트랜드](#롬복과-최신-트랜드)
     - [조회 빈이 2개 이상 - 문제](#조회-빈이-2개-이상---문제)
+    - [@Autowired 필드 명, @Qualifier, @Primary](#autowired-필드-명-qualifier-primary)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
