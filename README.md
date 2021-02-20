@@ -2883,8 +2883,40 @@ public void close() {
 - @Bean의 `destroyMethod`는 기본값이 `(inferred)`(추론)으로 등록되어 있다.
 - 이 추론 기능은 `close`, `shutdown`라는 이름의 메서드를 자동으로 호출해준다. 이름 그대로 종료 메서드를 추론해서 호출해준다.
 - 따라서 직접 스프링 빈으로 등록하면 종료 메서드는 따로 적어주지 않아도 잘 동작한다.
-- 추론 기능을 사용하기 싫으면 `destroyMethod = ""`처럼 빈 공백을 지정하면 된다.
+- 추론 기능을 사용하기 싫으면 `destroyMethod = ""`처럼 빈 공백을 지정하면 된다. 
 
+---
+
+### 애노테이션 @PostConstruct, @PreDestroy
+
+위 3가지 방법 중 이 방법을 사용하면 된다.
+
+```java
+@PostConstruct
+public void init() {
+    System.out.println("NetworkClient.init");
+    connect();
+    call("초기화 연결 메시지");
+}
+
+@PreDestroy
+public void close() {
+    System.out.println("NetworkClient.close");
+    disconnect();
+}
+```
+`@PostConstruct`, `@PreDestory` 이 두 애노테이션을 사용하면 가장 편리하게 초기화와 종료를 실행할 수 있다.
+
+**@PostConstruct, @PreDestory 애노테이션 특징**
+- 최신 스프링에서 가장 권장하는 방법.
+- 애노테이션 하나만 붙이면 되므로 매우 편리.
+- 패키지를 잘 보면 `javax.annotation.PostConstruct`이다. 스프링에 종속적인 기술이 아니라 JSR-250이라는 자바 표준이다. 따라서 스프링이 아닌 다른 컨테이너에서도 동작.
+- 컴포넌트 스캔과 잘 어울림.
+- 유일한 단점 : 외부 라이브러리에 적용 못함. 외부 라이브러리를 초기화, 종료 해야 하면 @Bean의 기능을 사용.
+
+**정리**
+- **@PostConstruct, @PreDestory 애노테이션을 사용하자**
+- 코드를 고칠 수 없는 외부 라이브러리를 초기화, 종료해야 하면 `@Bean`의 `initMethod`,`destroyMethod`를 사용하자.
 
 
 ---
@@ -2973,6 +3005,7 @@ public void close() {
     - [빈 생명주기 콜백 시작](#빈-생명주기-콜백-시작)
     - [인터페이스 InitializingBean, DisposableBean](#인터페이스-initializingbean-disposablebean)
     - [빈 등록 초기화, 소멸 메서드](#빈-등록-초기화-소멸-메서드)
+    - [애노테이션 @PostConstruct, @PreDestroy](#애노테이션-postconstruct-predestroy)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -3037,5 +3070,6 @@ public void close() {
     - [빈 생명주기 콜백 시작](#빈-생명주기-콜백-시작)
     - [인터페이스 InitializingBean, DisposableBean](#인터페이스-initializingbean-disposablebean)
     - [빈 등록 초기화, 소멸 메서드](#빈-등록-초기화-소멸-메서드)
+    - [애노테이션 @PostConstruct, @PreDestroy](#애노테이션-postconstruct-predestroy)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
