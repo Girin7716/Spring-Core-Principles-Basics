@@ -2820,9 +2820,35 @@ call: null message = 초기화 연결 메시지
 - @PostConstruct, @PreDestory 애노테이션 지원
 
 
+---
 
+### 인터페이스 InitializingBean, DisposableBean
+
+- `InitializingBean`은 `afterPropertiesSet()` 메서드로 초기화를 지원한다.
+- `DisposableBean`은 `destory()` 메서드로 소멸을 지원한다.
+
+**출력 결과**
+```
+call: null message = 초기화 연결 메시지
+NetworkClient.afterPropertiesSet
+connect: http://hello-spring.dev
+call: http://hello-spring.dev message = 초기화 연결 메시지
+16:09:15.797 [main] DEBUG org.springframework.context.annotation.AnnotationConfigApplicationContext - Closing org.springframework.context.annotation.AnnotationConfigApplicationContext@72a7c7e0, started on Sat Feb 20 16:09:15 KST 2021
+NetworkClient.destroy
+close: http://hello-spring.dev
+```
+- 출렬 결과를 보면 초기호 메서드가 주입 완료 후에 적절하게 호출 된 것을 확인할 수 있다.
+- 그리고 스프링 컨테이너의 종료과 호출되자 소멸 메서드가 호출 된 것도 확인할 수 있다.
+
+**초기화, 소멸 인터페이스 단점**
+- 이 인터페이스는 스프링 전용 인터페이스이다. 해당 코드가 스프링 전용 인터페이스에 의존한다.
+- 초기화, 소멸 메서드의 이름을 변경할 수 없다.
+- 내가 코드를 고칠 수 없는 외부 라이브러리에 적용할 수 없다.
+
+> 인터페이스를 사용하는 초기화, 종료 방법은 스프링 초창기에 나온 방법들이고, 지금은 다음의 더 나은 방법들이 있어서 거의 사용안함.
 
 ---
+
 
 ---
 ---
@@ -2908,6 +2934,7 @@ call: null message = 초기화 연결 메시지
     - [자동, 수도으이 올바른 실무 운영 기준](#자동-수도으이-올바른-실무-운영-기준)
   - [빈 생명주기 콜백](#빈-생명주기-콜백)
     - [빈 생명주기 콜백 시작](#빈-생명주기-콜백-시작)
+    - [인터페이스 InitializingBean, DisposableBean](#인터페이스-initializingbean-disposablebean)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -2970,5 +2997,6 @@ call: null message = 초기화 연결 메시지
     - [자동, 수도으이 올바른 실무 운영 기준](#자동-수도으이-올바른-실무-운영-기준)
   - [빈 생명주기 콜백](#빈-생명주기-콜백)
     - [빈 생명주기 콜백 시작](#빈-생명주기-콜백-시작)
+    - [인터페이스 InitializingBean, DisposableBean](#인터페이스-initializingbean-disposablebean)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
