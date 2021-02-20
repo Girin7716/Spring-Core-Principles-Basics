@@ -2918,6 +2918,45 @@ public void close() {
 - **@PostConstruct, @PreDestory 애노테이션을 사용하자**
 - 코드를 고칠 수 없는 외부 라이브러리를 초기화, 종료해야 하면 `@Bean`의 `initMethod`,`destroyMethod`를 사용하자.
 
+---
+---
+
+## 프로토타입 스코프 - 싱글톤 빈과 함께 사용시 문제점
+
+---
+---
+
+### 빈 스코프란?
+
+지금까지 우리는 스프링 빈이 스프링 컨테이너의 시작과 함께 생성되어서 스프링 컨테이너가 종료될 때 까지 유지된다고 학습했다. 이것은 스프링 빈이 기본적으로 싱글톤 스코프로 생성되기 때문이다. 스코프는 번역 그대로 빈이 존재할 수 있는 범위를 뜻한다.
+
+**스프링은 다음과 같은 다양한 스코프를 지원한다.**
+- **싱글톤** : 기본 스코프, 스프링 컨테이너의 시작과 종료까지 유지되는 가장 넓은 범위의 스코프.
+- **프로토타입** : 스프링 컨테이너는 프로토타입 빈의 생성과 의존관계 주입까지만(초기화 메서드까지는 해줌) 관여하고 더는 관리하지 않는 매우 짧은 범위의 스코프.
+- **웹 관련 스코프**
+  - **request** : 웹 요청이 들어오고 나갈때 까지 유지되는 스코프.
+  - **session** : 웹 세션이 생성되고 종료될 때 까지 유지되는 스코프.
+  - **application** : 웹의 서블릿 컨텍스와 같은 범위로 유지되는 스코프.
+
+빈 스코프는 다음과 같이 지정할 수 있다.
+
+**컴포넌트 스캔 자동 등록**
+```java
+@Scope("prototype")
+@Component
+public class HelloBean(){}
+```
+
+**수동 등록**
+```java
+@Scope("prototype")
+@Bean
+PrototypeBean HelloBean(){
+  return new HelloBean();
+}
+```
+
+지금까지 싱글톤 스코프를 계속 사용해보았으니, 프로토타입 스코프부터 확인해보자.
 
 ---
 ---
@@ -3006,6 +3045,8 @@ public void close() {
     - [인터페이스 InitializingBean, DisposableBean](#인터페이스-initializingbean-disposablebean)
     - [빈 등록 초기화, 소멸 메서드](#빈-등록-초기화-소멸-메서드)
     - [애노테이션 @PostConstruct, @PreDestroy](#애노테이션-postconstruct-predestroy)
+  - [프로토타입 스코프 - 싱글톤 빈과 함께 사용시 문제점](#프로토타입-스코프---싱글톤-빈과-함께-사용시-문제점)
+    - [빈 스코프란?](#빈-스코프란)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -3071,5 +3112,7 @@ public void close() {
     - [인터페이스 InitializingBean, DisposableBean](#인터페이스-initializingbean-disposablebean)
     - [빈 등록 초기화, 소멸 메서드](#빈-등록-초기화-소멸-메서드)
     - [애노테이션 @PostConstruct, @PreDestroy](#애노테이션-postconstruct-predestroy)
+  - [프로토타입 스코프 - 싱글톤 빈과 함께 사용시 문제점](#프로토타입-스코프---싱글톤-빈과-함께-사용시-문제점)
+    - [빈 스코프란?](#빈-스코프란)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
