@@ -3232,7 +3232,20 @@ public class MyLogger {
 위와 같이 작성 후 실행을 해보면 오류가 발생한다.
 - 스프링 애플리케이션을 실행하는 시점에 싱글톤 빈은 생성해서 주입이 가능하지만, request 스코프 빈은 아직 생성되지 않는다. 이 빈은 실제 고객의 요청이 와야 생성할 수 있기 때문이다.(Provider를 사용해서 해결가능)
 
+---
 
+### 스코프와 Provider
+
+첫번째 해결방법은 앞서 배운 Provider를 사용하는 것이다.<br>
+간단히 ObjectProvider를 사용해보자.
+ 
+ `main` 메서드로 스프링을 실행하고, 웹 브라우저에 `http://localhost:8080/log-demo`를 입력하자.
+
+ 그러면 잘 동작하는 모습을 볼 수 있다.
+
+ - `ObjectProvider` 덕분에 `ObdjectProvider.getObject()`를 호출하는 시점까지 request scope **빈의 생성을 지연**할 수 있다.
+ - `ObjectProvider.getObject()`를 호출하시는 시점에는 HTTP 요청이 진행중이므로 request scope 빈의 생성이 정상 처리된다.
+ - `ObjectProvider.getObject()`를 `LogDemoController`, `LogDemoService`에서 각각 한번씩 따로 호출해도 같은 HTTP 요청이면 같은 스프링 빈이 반환된다!
 
 ---
 ---
@@ -3328,6 +3341,7 @@ public class MyLogger {
     - [프로토타입 스코프 - 싱글톤 빈과 함께 사용시 Provider로 문제 해결](#프로토타입-스코프---싱글톤-빈과-함께-사용시-provider로-문제-해결)
     - [웹 스코프](#웹-스코프)
     - [request 스코프 예제 만들기](#request-스코프-예제-만들기)
+    - [스코프와 Provider](#스코프와-provider)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
 
@@ -3400,5 +3414,6 @@ public class MyLogger {
     - [프로토타입 스코프 - 싱글톤 빈과 함께 사용시 Provider로 문제 해결](#프로토타입-스코프---싱글톤-빈과-함께-사용시-provider로-문제-해결)
     - [웹 스코프](#웹-스코프)
     - [request 스코프 예제 만들기](#request-스코프-예제-만들기)
+    - [스코프와 Provider](#스코프와-provider)
   - [IntelliJ 단축키 모음집 & 참고](#intellij-단축키-모음집--참고)
   - [목차(바로가기)](#목차바로가기)
